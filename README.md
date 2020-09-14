@@ -1,37 +1,26 @@
-## Welcome to GitHub Pages
+# Gm88 游戏SDK
 
-You can use the [editor on GitHub](https://github.com/gm88tp/GameSDKDoc/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+Gm88游戏SDK（下称游戏SDK） 是专属的游戏SDK，必须与Gm88合作才能使用
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+游戏SDK目前分为Android和Ios两个终端，Android使用Java开发，Ios使用Object-C开发，对接时，游戏研发端应有相应的技术能力
 
-### Markdown
+本仓库提供游戏SDK的文档和Demo供参考，并在Release页中，提供SDK下载
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## 对接前需知
 
-```markdown
-Syntax highlighted code block
+对接前，你应该先拥有以下信息：
+- 游戏Id，Gm88运营提供
+- 加密秘钥，Gm88提供运营或双方约定
 
-# Header 1
-## Header 2
-### Header 3
+## 文档
 
-- Bulleted
-- List
+游戏SDK目前区分海外和国内业务，且同时支持Android和Ios两个终端，无论你使用哪个终端的SDK，请都进行Server端对接
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/gm88tp/GameSDKDoc/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+- 国内业务
+    - Android [文档](https://github.com/gm88tp/GameSDKDoc/Android/Domestic/README.md)
+    - Ios [文档](https://github.com/gm88tp/GameSDKDoc/Ios/Domestic/README.md)
+    - Sever [文档](https://github.com/gm88tp/GameSDKDoc/Server/Domestic/README.md)
+- 海外业务
+    - Android [文档](https://github.com/gm88tp/GameSDKDoc/Android/Global/README.md)
+    - Ios [文档](https://github.com/gm88tp/GameSDKDoc/Ios/Global/README.md)
+    - Sever [文档](https://github.com/gm88tp/GameSDKDoc/Global/Domestic/README.md)
