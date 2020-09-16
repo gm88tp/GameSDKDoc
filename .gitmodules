@@ -1,0 +1,12 @@
+[submodule "Android/Global"]
+	path = Android/Global
+	url = https://github.com/gm88tp/Android-Global-SDK-Demo.git
+[submodule "Android/Domestic"]
+	path = Android/Domestic
+	url = https://github.com/gm88tp/Android-Domestic-SDK-Demo.git
+[submodule "Ios/Domestic"]
+	path = Ios/Domestic
+	url = https://github.com/gm88tp/Ios-Domestic-SDK-Demo.git
+[submodule "Ios/Global"]
+	path = Ios/Global
+	url = https://github.com/gm88tp/Ios-Global-SDK-Demo.git

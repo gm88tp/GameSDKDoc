@@ -21,7 +21,7 @@ Gm88游戏SDK（下称游戏SDK） 是专属的游戏SDK，必须与Gm88合作�
     - Ios [文档](/Ios/Domestic/README.md)
     - Sever [文档](/Server/Domestic/README.md)
 - 海外业务
-    - Android [文档](/Android/Global/README.md)
+    - Android [文档](/Android/Global/DOCUMENT.md)
     - Ios [文档](/Ios/Global/README.md)
     - Sever [文档](/Global/Domestic/README.md)
 
