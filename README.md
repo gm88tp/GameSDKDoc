@@ -17,12 +17,12 @@ Gm88游戏SDK（下称游戏SDK） 是专属的游戏SDK，必须与Gm88合作�
 游戏SDK目前区分海外和国内业务，且同时支持Android和Ios两个终端，无论你使用哪个终端的SDK，请都进行Server端对接
 
 - 国内业务
-    - Android [文档](/Android/Domestic/README.md)
-    - Ios [文档](/Ios/Domestic/README.md)
-    - Sever [文档](/Server/Domestic/README.md)
+    - Android [文档](/Android/Domestic/docs/DOCUMENT.md)
+    - Ios [文档](/Ios/Domestic/docs/DOCUMENT.md)
+    - Sever [文档](/Server/docs/Domestic/DOCUMENT.md)
 - 海外业务
-    - Android [文档](/Android/Global/DOCUMENT.md)
-    - Ios [文档](/Ios/Global/README.md)
-    - Sever [文档](/Global/Domestic/README.md)
+    - Android [文档](/Android/Global/docs/DOCUMENT.md)
+    - Ios [文档](/Ios/Global/docs/DOCUMENT.md)
+    - Sever [文档](/Server/docs/Global/DOCUMENT.md)
 
 SDK请在Release页面下载
