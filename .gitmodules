@@ -13,3 +13,6 @@
 [submodule "Server"]
 	path = Server
 	url = https://github.com/gm88tp/Server-SDK-Demo.git
+[submodule "Ios/Global-StandAlone"]
+	path = Ios/Global-StandAlone
+	url = https://github.com/gm88tp/Ios-Global-SDK-Demo-StandAlone.git
