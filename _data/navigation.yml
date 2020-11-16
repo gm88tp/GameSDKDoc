@@ -1,0 +1,27 @@
+header:
+  - title: 首页
+    url: /
+
+sidebar-zh:
+  - title: 准备工作
+    children:
+      - title: 开始
+        url: /Start.html
+      - title: SDK下载
+        url: /Download.html
+  - title:      Android文档
+    children:
+        - title:  Android国内
+          url:    /Android/Domestic/docs/DOCUMENT.html
+        - title:  Android海外
+          url:    /Android/Global/docs/DOCUMENT.html
+        - title:  Android海外单机
+          url:    /Android/Global-StandAlone/docs/DOCUMENT.html
+  - title:      IOS文档
+    children:
+        - title:  IOS国内
+          url:    /Ios/Domestic/docs/DOCUMENT.html
+        - title:  IOS海外
+          url:    /Ios/Global/docs/DOCUMENT.html
+        - title:  IOS海外单机
+          url:    /Ios/Global-StandAlone/docs/DOCUMENT.html
