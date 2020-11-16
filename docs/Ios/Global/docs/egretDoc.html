@@ -1,0 +1,2236 @@
+<!DOCTYPE html><html lang="zh_CN">
+  <head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>GM88 游戏 SDK</title>
+
+<meta name="description" content="GM88 游戏 SDK 文档
+">
+<link rel="canonical" href="/Ios/Global/docs/egretDoc.html"><link rel="alternate" type="application/rss+xml" title="GM88 游戏 SDK" href="/feed.xml"><!-- start favicons snippet, use https://realfavicongenerator.net/ --><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#fc4d50"><link rel="shortcut icon" href="/assets/favicon.ico">
+
+<meta name="msapplication-TileColor" content="#ffc40d"><meta name="msapplication-config" content="/assets/browserconfig.xml">
+
+<meta name="theme-color" content="#ffffff">
+<!-- end favicons snippet --><link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" ><!-- start custom head snippets -->
+
+<!-- end custom head snippets -->
+<script>(function() {
+  window.isArray = function(val) {
+    return Object.prototype.toString.call(val) === '[object Array]';
+  };
+  window.isString = function(val) {
+    return typeof val === 'string';
+  };
+
+  window.hasEvent = function(event) {
+    return 'on'.concat(event) in window.document;
+  };
+
+  window.isOverallScroller = function(node) {
+    return node === document.documentElement || node === document.body || node === window;
+  };
+
+  window.isFormElement = function(node) {
+    var tagName = node.tagName;
+    return tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
+  };
+
+  window.pageLoad = (function () {
+    var loaded = false, cbs = [];
+    window.addEventListener('load', function () {
+      var i;
+      loaded = true;
+      if (cbs.length > 0) {
+        for (i = 0; i < cbs.length; i++) {
+          cbs[i]();
+        }
+      }
+    });
+    return {
+      then: function(cb) {
+        cb && (loaded ? cb() : (cbs.push(cb)));
+      }
+    };
+  })();
+})();
+(function() {
+  window.throttle = function(func, wait) {
+    var args, result, thisArg, timeoutId, lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+    return function() {
+      var now = new Date,
+        remaining = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remaining <= 0) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      } else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remaining);
+      }
+      return result;
+    };
+  };
+})();
+(function() {
+  var Set = (function() {
+    var add = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (data[i] === item) {
+          return;
+        }
+      }
+      this.size ++;
+      data.push(item);
+      return data;
+    };
+
+    var Set = function(data) {
+      this.size = 0;
+      this._data = [];
+      var i;
+      if (data.length > 0) {
+        for (i = 0; i < data.length; i++) {
+          add.call(this, data[i]);
+        }
+      }
+    };
+    Set.prototype.add = add;
+    Set.prototype.get = function(index) { return this._data[index]; };
+    Set.prototype.has = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (this.get(i) === item) {
+          return true;
+        }
+      }
+      return false;
+    };
+    Set.prototype.is = function(map) {
+      if (map._data.length !== this._data.length) { return false; }
+      var i, j, flag, tData = this._data, mData = map._data;
+      for (i = 0; i < tData.length; i++) {
+        for (flag = false, j = 0; j < mData.length; j++) {
+          if (tData[i] === mData[j]) {
+            flag = true;
+            break;
+          }
+        }
+        if (!flag) { return false; }
+      }
+      return true;
+    };
+    Set.prototype.values = function() {
+      return this._data;
+    };
+    return Set;
+  })();
+
+  window.Lazyload = (function(doc) {
+    var queue = {js: [], css: []}, sources = {js: {}, css: {}}, context = this;
+    var createNode = function(name, attrs) {
+      var node = doc.createElement(name), attr;
+      for (attr in attrs) {
+        if (attrs.hasOwnProperty(attr)) {
+          node.setAttribute(attr, attrs[attr]);
+        }
+      }
+      return node;
+    };
+    var end = function(type, url) {
+      var s, q, qi, cbs, i, j, cur, val, flag;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        s[url] = true;
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (cur.urls.has(url)) {
+            qi = cur, val = qi.urls.values();
+            qi && (cbs = qi.callbacks);
+            for (flag = true, j = 0; j < val.length; j++) {
+              cur = val[j];
+              if (!s[cur]) {
+                flag = false;
+              }
+            }
+            if (flag && cbs && cbs.length > 0) {
+              for (j = 0; j < cbs.length; j++) {
+                cbs[j].call(context);
+              }
+              qi.load = true;
+            }
+          }
+        }
+      }
+    };
+    var load = function(type, urls, callback) {
+      var s, q, qi, node, i, cur,
+        _urls = typeof urls === 'string' ? new Set([urls]) : new Set(urls), val, url;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (_urls.is(cur.urls)) {
+            qi = cur;
+            break;
+          }
+        }
+        val = _urls.values();
+        if (qi) {
+          callback && (qi.load || qi.callbacks.push(callback));
+          callback && (qi.load && callback());
+        } else {
+          q.push({
+            urls: _urls,
+            callbacks: callback ? [callback] : [],
+            load: false
+          });
+          for (i = 0; i < val.length; i++) {
+            node = null, url = val[i];
+            if (s[url] === undefined) {
+              (type === 'js' ) && (node = createNode('script', { src: url }));
+              (type === 'css') && (node = createNode('link', { rel: 'stylesheet', href: url }));
+              if (node) {
+                node.onload = (function(type, url) {
+                  return function() {
+                    end(type, url);
+                  };
+                })(type, url);
+                (doc.head || doc.body).appendChild(node);
+                s[url] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+    return {
+      js: function(url, callback) {
+        load('js', url, callback);
+      },
+      css: function(url, callback) {
+        load('css', url, callback);
+      }
+    };
+  })(this.document);
+})();
+</script><script>
+  (function() {
+    var TEXT_VARIABLES = {
+      version: '2.2.6',
+      sources: {
+        font_awesome: 'https://use.fontawesome.com/releases/v5.0.13/css/all.css',
+        jquery: 'https://unpkg.com/jquery@3.3.1/dist/jquery.min.js',
+        leancloud_js_sdk: '//cdn.jsdelivr.net/npm/leancloud-storage@3.13.2/dist/av-min.js',
+        chart: 'https://unpkg.com/chart.js@2.7.2/dist/Chart.min.js',
+        gitalk: {
+          js: 'https://unpkg.com/gitalk@1.2.2/dist/gitalk.min.js',
+          css: 'https://unpkg.com/gitalk@1.2.2/dist/gitalk.css'
+        },
+        valine: 'https//unpkg.com/valine/dist/Valine.min.js',
+        mathjax: 'https://unpkg.com/mathjax@2.7.4/unpacked/MathJax.js?config=TeX-MML-AM_CHTML',
+        mermaid: 'https://unpkg.com/mermaid@8.0.0-rc.8/dist/mermaid.min.js'
+      },
+      site: {
+        toc: {
+          selectors: 'h1,h2,h3'
+        }
+      },
+      paths: {
+        search_js: '/assets/search.js'
+      }
+    };
+    window.TEXT_VARIABLES = TEXT_VARIABLES;
+  })();
+</script>
+</head>
+  <body>
+    <div class="root" data-is-touch="false">
+      <div class="layout--page layout--page--sidebar clearfix js-page-root">
+  <div class="page__mask d-print-none js-page-mask js-sidebar-hide"></div>
+  <div class="page__viewport">
+    <div class="page__actions d-print-none">
+      <div class="button button--circle button--lg box-shadow-2 sidebar-button js-sidebar-show">
+        <i class="fas fa-bars icon--show"></i>
+      </div>
+    </div>
+
+    <div class="grid page__grid">
+
+      <div class="page__sidebar d-print-none"><div class="sidebar-toc"><ul class="toc toc--navigator"><li class="toc-h1">准备工作</li><li class="toc-h2"><a href="/Start.html">开始</a></li><li class="toc-h2"><a href="/Download.html">SDK下载</a></li><li class="toc-h1">Android文档</li><li class="toc-h2"><a href="/Android/Domestic/docs/DOCUMENT.html">Android国内</a></li><li class="toc-h2"><a href="/Android/Global/docs/DOCUMENT.html">Android海外</a></li><li class="toc-h2"><a href="/Android/Global-StandAlone/docs/DOCUMENT.html">Android海外单机</a></li><li class="toc-h1">IOS文档</li><li class="toc-h2"><a href="/Ios/Domestic/docs/DOCUMENT.html">IOS国内</a></li><li class="toc-h2"><a href="/Ios/Global/docs/DOCUMENT.html">IOS海外</a></li><li class="toc-h2"><a href="/Ios/Global-StandAlone/docs/DOCUMENT.html">IOS海外单机</a></li></ul></div></div><div class="page__main js-page-main has-aside cell cell--auto">
+
+      <div class="page__main-inner"><div class="page__header d-print-none"><header class="header"><div class="main">
+      <div class="header__title">
+        <div class="header__brand"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="24px" height="24px" viewBox="0 0 24 24">
+<style type="text/css">
+	.st0{fill:#515151;}
+</style>
+<path class="st0" d="M1.7,22.3c5.7-5.7,11.3-5.7,17,0c3.3-3.3,3.5-5.3,0.8-6c2.7,0.7,3.5-1.1,2.3-5.6s-3.3-5.2-6.3-2.1
+	c3-3,2.3-5.2-2.1-6.3S7,1.8,7.7,4.6C7,1.8,5,2.1,1.7,5.3C7.3,11,7.3,16.7,1.7,22.3"/>
+</svg>
+<a title="GM88 游戏 SDK 文档
+" href="/">GM88 游戏 SDK</a></div><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></div><nav class="navigation">
+        <ul><li class="navigation__item"><a href="/">首页</a></li><li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li></ul>
+      </nav></div>
+  </header>
+</div><div class="page__content"><div class ="main"><div class="grid grid--reverse">
+
+              <div class="col-aside d-print-none js-col-aside"><aside class="page__aside js-page-aside"><div class="toc-aside js-toc-root"></div>
+</aside></div>
+
+              <div class="col-main cell cell--auto"><!-- start custom main top snippet -->
+
+<!-- end custom main top snippet -->
+<article itemscope itemtype="http://schema.org/Article"><div class="article__header"><header><h1></h1></header></div><meta itemprop="headline" content=""><div class="article__info clearfix"><ul class="right-col menu"></ul></div><meta itemprop="author" content="怪猫TP"/><div class="js-article-content"><div class="layout--article"><!-- start custom article top snippet -->
+
+<!-- end custom article top snippet -->
+<div class="article__content" itemprop="articleBody"><h1 id="gm88海外h5游戏sdk-对接文档">Gm88海外H5游戏SDK 对接文档</h1>
+
+<p>本文档旨在帮忙CP对接Gm88游戏的登陆和支付，Gm88也会提供相应SDK需要的技术文件。</p>
+
+<h2 id="1-适用范围">1. 适用范围</h2>
+
+<ul>
+  <li>只面向使用白鹭(Egret)引擎开发的H5游戏</li>
+  <li>只面向海外地区，国内地区请联系对接的Gm88运营</li>
+</ul>
+
+<h2 id="对接流程">对接流程</h2>
+
+<p>CP应先提供相应信息给到运营，然后进行后端对接，完成后再根据游戏发行的终端，进行各终端的对接</p>
+
+<p>对接流程如下图：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    graph TD
+    信息提供[CP提供对接游戏信息] --&gt; 加密信息[Gm88提供appId和appSecret]
+    加密信息 --&gt; 后端对接[CP进行对接后端对接]
+    后端对接 --&gt; H5端对接[CP进行H5端对接]
+    后端对接 --&gt; Android端对接
+    后端对接 --&gt; IOS端对接
+    H5端对接 --&gt; Gm88输出H5端游戏地址
+    Android端对接 --&gt; Android端输出[CP使用白鹭引擎输出Android工程]
+    Android端输出 --&gt; Android端发布[Gm88前端输出Android包,提审Google Play]
+    IOS端对接 --&gt; IOS端输出[CP使用白鹭引擎输出IOS工程]
+    IOS端输出 --&gt; IOS端发布[Gm88前端输出IOS包,提审Apple Store]
+</code></pre></div></div>
+
+<h2 id="2-前期信息对接">2. 前期信息对接</h2>
+
+<p>前两步只是信息提供，后三步是技术文档对接，以下说明具体步骤。</p>
+
+<h3 id="21-cp方提供对接游戏信息">2.1 CP方提供对接游戏信息</h3>
+
+<p>具体信息包括：</p>
+
+<ul>
+  <li>游戏名称</li>
+  <li>游戏Icon</li>
+  <li>游戏简介</li>
+  <li>游戏测试地址</li>
+  <li>充值回调地址</li>
+</ul>
+
+<p>请将以上信息提供给对接的运营人员</p>
+
+<h3 id="22-gm88方提供加密信息">2.2 Gm88方提供加密信息</h3>
+
+<p>Gm88的运营人员根据第一步提供的信息，生成appId和appSecret，并提供给CP，这两者会在加密传输时用到。</p>
+
+<h2 id="3-后端对接">3. 后端对接</h2>
+
+<p>后端对接是技术对接的第一步，由于是H5游戏，我们通过htpp请求来对接用户信息的部分。</p>
+
+<h4 id="31-accesstoken传递">3.1 AccessToken传递</h4>
+
+<p>Gm88会在游戏访问地址之后，使用GET方式传输AccessToken，这引参数将在下一步登陆接口调用时用到，CP方可将此AccessToken临时存储。</p>
+
+<h4 id="32-登陆接口">3.2 登陆接口</h4>
+
+<p>CP方可以使用此接口获得用户信息</p>
+
+<p>UserInfo /GET</p>
+
+<p><strong>地址</strong></p>
+
+<p>https://open.hkpctimes.com/UserInfo</p>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>accessToken</td>
+      <td>string</td>
+      <td>加载游戏时传入的accessToken</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>返回</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>code</td>
+      <td>Int</td>
+      <td>0:正确   其他：错误</td>
+    </tr>
+    <tr>
+      <td>res</td>
+      <td>object</td>
+      <td>用户信息</td>
+    </tr>
+    <tr>
+      <td>msg</td>
+      <td>string</td>
+      <td>错误信息</td>
+    </tr>
+    <tr>
+      <td>sys_time</td>
+      <td>Int</td>
+      <td>服务器时间戳</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>res参数中的内容</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>openid</td>
+      <td>Int</td>
+      <td>用户唯一ID</td>
+    </tr>
+    <tr>
+      <td>name</td>
+      <td>string</td>
+      <td>用户名</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="32-支付回调">3.2 支付回调</h4>
+
+<p>这是用户支付完成之后，Gm88方确认用户已经付款完成时，发起的异步支付成功通知，CP方应有后端程序接收此请求，并在接收到此通知后，在游戏内向用户发货，并返回正确的响应，以便Gm88后端知晓发放成功。</p>
+
+<p>异步通知</p>
+
+<p>请求类型：POST</p>
+
+<p><strong>回调参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>order_id</td>
+      <td>int</td>
+      <td>Gm88订单号</td>
+    </tr>
+    <tr>
+      <td>server_id</td>
+      <td>int</td>
+      <td>H5</td>
+    </tr>
+    <tr>
+      <td>role_id</td>
+      <td>int</td>
+      <td>用户唯一ID，和用户openId相同</td>
+    </tr>
+    <tr>
+      <td>developerinfo</td>
+      <td>string</td>
+      <td>自定义参数，和下单的extra相同，请参数4.1章节的发起支付接口</td>
+    </tr>
+    <tr>
+      <td>coin</td>
+      <td>float</td>
+      <td>订单金额，单位：美元</td>
+    </tr>
+    <tr>
+      <td>signature</td>
+      <td>string</td>
+      <td>签名字段</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>signature签名</strong></p>
+
+<ul>
+  <li>将以上字段连接,再加上app私钥,最后计算md5值。如</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>signature = md5(order_id=xxx&amp;server_id=xxx&amp;role_id=xxx&amp;developerinfo=xxx&amp;coin=xxx&amp;appSecret)
+</code></pre></div></div>
+
+<p><strong>加密示例(PHP)</strong></p>
+
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$appSecret</span> <span class="o">=</span> <span class="s1">'nHxJ8D8YkbZmYfTE'</span><span class="p">;</span>
+
+<span class="nv">$data</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+    <span class="s1">'order_id'</span> <span class="o">=&gt;</span> <span class="s1">'2018112601033300001'</span><span class="p">,</span>
+    <span class="s1">'server_id'</span> <span class="o">=&gt;</span> <span class="s1">'1'</span><span class="p">,</span>
+    <span class="s1">'role_id'</span> <span class="o">=&gt;</span> <span class="s1">'0'</span><span class="p">,</span>
+    <span class="s1">'developerinfo'</span> <span class="o">=&gt;</span> <span class="s1">'developerinfo1543219387578'</span><span class="p">,</span>
+    <span class="s1">'coin'</span> <span class="o">=&gt;</span> <span class="s1">'6.00'</span>
+<span class="p">);</span>
+
+<span class="nv">$perstr</span> <span class="o">=</span> <span class="s1">'order_id=2018112601033300001&amp;server_id=1&amp;role_id=0&amp;developerinfo=developerinfo1543219387578&amp;coin=6.00&amp;nHxJ8D8YkbZmYfTE'</span><span class="p">;</span>
+
+<span class="nv">$signature</span> <span class="o">=</span> <span class="nb">md5</span><span class="p">(</span><span class="nv">$perstr</span><span class="p">);</span> <span class="c1">// a827d5349551c56b11aae65d9ace3a66</span>
+</code></pre></div></div>
+
+<p>CP收到请求后，应进行发货操作，在发货成功后返回“ok“(字符串)，表示已经接收支付结果，如未收到ok，系统会每隔5分钟发起一次通知，如果发货是异步的，可以返回”ok”，但请保证后续发货一定成功。</p>
+
+<h3 id="33-支付订单查询可选">3.3 支付订单查询（可选）</h3>
+
+<p>CP在收到支付回调之后，可以使用此接口查询订单状态</p>
+
+<p>接口地址：https://m.hkpctimes.com/api/index.php</p>
+
+<p>请求类型：POST</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>action</td>
+      <td>string</td>
+      <td>定值:verify</td>
+    </tr>
+    <tr>
+      <td>game_id</td>
+      <td>int</td>
+      <td>appID</td>
+    </tr>
+    <tr>
+      <td>order_id</td>
+      <td>Int</td>
+      <td>订单ID</td>
+    </tr>
+    <tr>
+      <td>signature</td>
+      <td>string</td>
+      <td>签名字段</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>signature签名</strong></p>
+
+<ul>
+  <li>将以上字段连接,再加上app私钥,最后计算md5值。如</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>signature = md5(action=verify&amp;game_id=xxx&amp;order_id=xxx&amp;APP_SECRET)
+</code></pre></div></div>
+
+<p>返回内容为json格式：</p>
+
+<p><strong>正确返回示例：</strong></p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+    <span class="dl">"</span><span class="s2">data</span><span class="dl">"</span><span class="p">:{</span>
+        <span class="dl">"</span><span class="s2">status</span><span class="dl">"</span><span class="p">:</span><span class="dl">"</span><span class="s2">N</span><span class="dl">"</span><span class="p">,</span>  <span class="c1">// Y：成功</span>
+        <span class="dl">"</span><span class="s2">server_id</span><span class="dl">"</span><span class="p">:</span><span class="dl">"</span><span class="s2">3服</span><span class="dl">"</span><span class="p">,</span> <span class="c1">// 区服</span>
+        <span class="dl">"</span><span class="s2">role_id</span><span class="dl">"</span><span class="p">:</span><span class="dl">"</span><span class="s2">668</span><span class="dl">"</span><span class="p">,</span> <span class="c1">// 角色ID</span>
+        <span class="dl">"</span><span class="s2">developerinfo</span><span class="dl">"</span><span class="p">:</span><span class="dl">"</span><span class="s2">game_3-668-7878</span><span class="dl">"</span><span class="p">,</span> <span class="c1">// 透传参数</span>
+        <span class="dl">"</span><span class="s2">coin</span><span class="dl">"</span><span class="p">:</span><span class="dl">"</span><span class="s2">648</span><span class="dl">"</span><span class="p">,</span> <span class="c1">// 订单金额</span>
+        <span class="dl">"</span><span class="s2">pay_time</span><span class="dl">"</span><span class="p">:</span><span class="dl">"</span><span class="s2">2018-12-30 02:54:39</span><span class="dl">"</span> <span class="c1">// 支付时间</span>
+    <span class="p">},</span>
+    <span class="dl">"</span><span class="s2">status</span><span class="dl">"</span><span class="p">:</span><span class="kc">true</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>错误返回示例</strong></p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="p">{</span>
+    <span class="dl">"</span><span class="s2">status</span><span class="dl">"</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">errorno</span><span class="dl">"</span><span class="p">:</span><span class="mi">101</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">errortext</span><span class="dl">"</span><span class="p">:</span><span class="dl">"</span><span class="s2">签名错误</span><span class="dl">"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="4-androidios端对接">4. Android/IOS端对接</h2>
+
+<p>Android和IOS的对接方式相同，所以一并叙述。在完成后端对接后，应该使用白鹭引擎导出Android/IOS工程文件，并提供给怪猫。这种由白鹭官方的IDE提供，可以通过白鹭一键生成。</p>
+
+<p>在输出Android/IOS工程之前，应按白鹭官方文档方法，对接以下三个JS接口</p>
+
+<h3 id="41-发起支付接口">4.1 发起支付接口</h3>
+
+<p>当游戏内需发起支付时，应调用此接口</p>
+
+<p>接口定义：doPay(String payJson)</p>
+
+<p><strong>payJson参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>productName</td>
+      <td>string</td>
+      <td>商品名称，会显示在相应支付界面上</td>
+    </tr>
+    <tr>
+      <td>price</td>
+      <td>float</td>
+      <td>商品价格，单位：美元</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>订单透传参数，这些参数会在支付回调时一并回传给CP，请CP自行解析</td>
+    </tr>
+    <tr>
+      <td>payStage</td>
+      <td>string</td>
+      <td>额外支付参数（默认为商品ID）</td>
+    </tr>
+    <tr>
+      <td>roleId</td>
+      <td>string</td>
+      <td>待支付角色ID</td>
+    </tr>
+    <tr>
+      <td>serverId</td>
+      <td>string</td>
+      <td>待支付角色区服名称或者ID</td>
+    </tr>
+    <tr>
+      <td>productId</td>
+      <td>string</td>
+      <td>商品ID</td>
+    </tr>
+    <tr>
+      <td>notifyUrl</td>
+      <td>string</td>
+      <td>支付通知地址，没有的话请不要传递该参数(请求信息内不需要该参数为空)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Java示例</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">payJson</span> <span class="o">=</span> <span class="s">"{
+    productName:"</span><span class="n">xx</span><span class="s">", 
+    price: "</span><span class="n">xx</span><span class="s">",
+    extra: "</span><span class="n">xx</span><span class="s">",
+    payStage: "</span><span class="n">xx</span><span class="s">",
+    roleId: "</span><span class="n">xx</span><span class="s">",
+    serverId: "</span><span class="n">xx</span><span class="s">",
+    productId: "</span><span class="n">xx</span><span class="s">"
+}"</span><span class="o">;</span>
+<span class="n">doPay</span><span class="o">(</span><span class="n">payJson</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="42-角色信息变更接口">4.2 角色信息变更接口</h3>
+
+<p>接口定义： doSpot(String spotJson)</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>spotType</td>
+      <td>string</td>
+      <td>事件类型，取值为：1：创建角色   2：完成新手引导 3：玩家等级变化后上传 4:玩家选择完区服</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>json</td>
+      <td>这是角色具体信息，格式为Json，包括4种信息：roleId: 角色ID, roleName： 角色名，roleServer：  角色区服，roleLevel： 角色等级</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>java调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">spotJson</span> <span class="o">=</span> <span class="s">"{
+    "</span><span class="n">spotType</span><span class="s">":   "</span><span class="mi">1</span><span class="s">" , 
+    "</span><span class="n">extra</span><span class="s">": {
+        "</span><span class="n">roleName</span><span class="s">": "</span><span class="n">角色名</span><span class="s">" , 
+        "</span><span class="n">roleServer</span><span class="s">": "</span><span class="n">区服名</span><span class="s">",
+        "</span><span class="n">roleLevel</span><span class="s">": "</span><span class="mi">10</span><span class="s">",
+        "</span><span class="n">roleId</span><span class="s">":"</span><span class="mi">1</span><span class="s">"
+    }
+}"</span><span class="o">;</span>
+<span class="n">doSpot</span><span class="o">(</span><span class="n">spotJson</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="43-游戏加载完成接口">4.3 游戏加载完成接口</h3>
+
+<p>当游戏加载完成时，应调用此接口，告知IOS/Android原生端</p>
+
+<p>接口定义：doCancelLoading()</p>
+
+<p>java调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doCancelLoading</span><span class="o">();</span>
+</code></pre></div></div>
+
+<h3 id="44-发起分享">4.4 发起分享</h3>
+
+<p>当游戏需要拉起分享的时候，应调用此接口，告知IOS/Android原生端</p>
+
+<p>接口定义：share(String shareInfo)</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">shareInfo</span> <span class="o">=</span> <span class="s">"{"</span><span class="n">shareID</span><span class="s">":"</span><span class="mi">1</span><span class="s">","</span><span class="n">shareName</span><span class="s">":"</span><span class="n">每日分享</span><span class="s">","</span><span class="n">uName</span><span class="s">":"</span><span class="n">分享者游戏名</span><span class="s">","</span><span class="n">server</span><span class="s">":"</span><span class="n">分享者所在区服</span><span class="s">","</span><span class="n">code</span><span class="s">":"</span><span class="n">邀请码</span><span class="s">"}"</span>
+<span class="n">doShare</span><span class="o">(</span><span class="n">shareInfo</span><span class="o">);</span>
+</code></pre></div></div>
+
+<p>shareInfo 示例:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>shareID</td>
+      <td>int</td>
+      <td>分享内容Id(Gm88运营提供)</td>
+    </tr>
+    <tr>
+      <td>shareName</td>
+      <td>string</td>
+      <td>分享内容Name(Gm88运营提供)</td>
+    </tr>
+    <tr>
+      <td>uName</td>
+      <td>string</td>
+      <td>分享者游戏名</td>
+    </tr>
+    <tr>
+      <td>server</td>
+      <td>string</td>
+      <td>分享者所在区服</td>
+    </tr>
+    <tr>
+      <td>code</td>
+      <td>string</td>
+      <td>邀请码(可供接受分享者使用等)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>同时，会给游戏对应的分享回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doShareDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">status</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>status</td>
+      <td>string</td>
+      <td>1：分享成功    0：分享失败或者分享取消</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例 ：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doShareDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">status</span><span class="s">":"</span><span class="mi">1</span><span class="s">"}"</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="45-拉起广告">4.5 拉起广告</h3>
+
+<p>当游戏需要拉起广告的时候，应调用此接口，告知IOS/Android原生端</p>
+
+<p>接口定义：doAdShow(String extra)</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>广告透传参数，在成功的回调内，会原样返回</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doAdShow</span><span class="o">(</span><span class="nc">String</span> <span class="n">extra</span><span class="o">);</span>            
+</code></pre></div></div>
+
+<p>同时，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doAdShowDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">adInfo</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>返回示例:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doAdShowDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">status</span><span class="s">":"</span><span class="mi">1</span><span class="s">","</span><span class="n">extra</span><span class="s">":"</span><span class="n">info</span><span class="s">"}"</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>status</td>
+      <td>string</td>
+      <td>1：激励视频播放成功    0：激励视频播放失败   -1: 当前无广告</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>广告透传参数，为发起广告时传过来的参数</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="46-游戏内行为打点非必接若运营有需求需要接入">4.6 游戏内行为打点（非必接，若运营有需求，需要接入）</h3>
+
+<p>当游戏内发生相关行为后，应调用此接口，告知IOS/Android原生端</p>
+
+<p>接口定义：doEventInfo(String eventInfo)</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>eventInfo</td>
+      <td>string</td>
+      <td>行为事件名(该值由Gm88运营提供)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Java调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doEventInfo</span><span class="o">(</span><span class="n">eventInfo</span><span class="o">);</span>
+</code></pre></div></div>
+
+<h3 id="47-游戏绑定账号入口">4.7 游戏绑定账号入口</h3>
+
+<p>游戏内需提供显示绑定账号页面的入口，点击入口时调用此接口，告知IOS/Android原生端</p>
+
+<p>接口定义：doBind()</p>
+
+<p>Java调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doBind</span><span class="o">();</span>
+</code></pre></div></div>
+
+<p>在用户完成绑定后，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doBindDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">status</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>status</td>
+      <td>string</td>
+      <td>1：绑定成功    0：绑定失败</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例 :</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doBindDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">status</span><span class="s">":"</span><span class="mi">1</span><span class="s">"}"</span><span class="o">);</span>
+</code></pre></div></div>
+
+<h3 id="48-查询账号绑定">4.8 查询账号绑定</h3>
+
+<p>游戏内需查询当前账号绑定状态时时调用此接口，告知IOS/Android原生端</p>
+
+<p>接口定义：doQuery()</p>
+
+<p>Java调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doQuery</span><span class="o">();</span>
+</code></pre></div></div>
+
+<p>在用户完成绑定后，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doQueryDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">status</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>status</td>
+      <td>string</td>
+      <td>1：已绑定    0：未绑定  -1:查询失败</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例 :</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doBindDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">status</span><span class="s">":"</span><span class="mi">1</span><span class="s">"}"</span><span class="o">);</span>
+</code></pre></div></div>
+
+<h3 id="49-获取token">4.9 获取token</h3>
+
+<p>当游戏需要获取角色验证token时,调用此方法</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doGetToken</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p>同时，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doGetTokenDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">accessToken</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>accessToken</td>
+      <td>string</td>
+      <td>当前登录用户token，可用于向后端做用户真实性验证</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例 :</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doGetTokenDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">accessToken</span><span class="s">":"</span><span class="n">xxxxxx</span><span class="s">"}"</span><span class="o">);</span>
+</code></pre></div></div>
+
+<h3 id="410-获取当前版本">4.10 获取当前版本</h3>
+
+<p>当游戏需要对某些特定版本进行相关操作时，可以调用此方法来区分版本。</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doGetVersion</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p>同时，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doGetVersionDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">versionCode</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>versionCode</td>
+      <td>string</td>
+      <td>当前apk的versionCode</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例 :</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doGetVersionDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">versionCode</span><span class="s">":"</span><span class="mi">1</span><span class="s">"}"</span><span class="o">);</span>
+</code></pre></div></div>
+
+<h3 id="411--游戏内需要拉起切换账号">4.11  游戏内需要拉起切换账号</h3>
+
+<p>当游戏需要在游戏内拉起切换账号功能，可以调用此方法来显示登录页</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doReLogin</span><span class="o">()</span>
+</code></pre></div></div>
+
+<h3 id="412-获取当前手机系统语言">4.12 获取当前手机系统语言</h3>
+
+<p>当游戏需要区分当前手机系统语言时，可以调用此方法来获取</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doLanguage</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p>同时，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doLanguageDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">languageInfo</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>language</td>
+      <td>string</td>
+      <td>当前apk的versionCode</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例 :</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doLanguageDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">language</span><span class="s">":"</span><span class="n">zh</span><span class="o">-</span><span class="no">CN</span><span class="err">"</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="413-打开一个外部网页">4.13 打开一个外部网页</h3>
+
+<p>当游戏需要通过外部浏览器打开一个网页时，可以使用此方法，包括但不限定打开Facebook粉丝页，Lobi，Twitter,巴哈姆特等。</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">openURL</span><span class="o">(</span><span class="nc">String</span> <span class="n">url</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>url</td>
+      <td>string</td>
+      <td>需要打开的网页地址</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="414-打开facebook粉丝页客户端">4.14 打开Facebook粉丝页客户端。</h3>
+
+<p>当游戏需要直接打开Facebook客户端时，请直接拉起</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">openFbPage</span><span class="o">(</span><span class="nc">String</span> <span class="n">url</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>url</td>
+      <td>string</td>
+      <td>需要打开的网页地址（若无客户端会拉起该网址）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="415-将文字存入剪贴板">4.15 将文字存入剪贴板</h3>
+
+<p>当游戏需要将文字存入剪贴板时，可以调用此方法</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">setPasteboard</span><span class="o">(</span><span class="nc">String</span> <span class="n">extra</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>需要存入剪贴板的文字</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="416-获取当前用户手机时间所在时区">4.16 获取当前用户手机时间所在时区</h3>
+
+<p>当游戏需要获取当前用户手机时间所在时区时，调用此方法</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doTimeZone</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p>同时，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doTimeZoneDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">timeZone</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>timeZone</td>
+      <td>string</td>
+      <td>用户当前所在时区缩写   +8 表示东八区</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doAdShowDone</span><span class="o">(</span><span class="s">"{"</span><span class="n">timeZone</span><span class="s">":"</span><span class="o">+</span><span class="mi">8</span><span class="err">"</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="417-重新登录">4.17 重新登录</h3>
+
+<p>当游戏需要重新登录时，调用此方法。多数用于当前token已失效。</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doLogout</span><span class="o">()</span>
+</code></pre></div></div>
+
+<h3 id="418-查询当前游戏需要展示给用户查看的货币">4.18 查询当前游戏需要展示给用户查看的货币。</h3>
+
+<p>当游戏需要查询当前游戏需要展示给用户查看的货币时。可以调用此方法</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doPurchaseList</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p>同时，会给游戏对应的回调</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">doPurchaseListDone</span><span class="o">(</span><span class="nc">String</span> <span class="n">purchaseListInfo</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>status</td>
+      <td>boolean</td>
+      <td>true : 查询成功    false:  查询失败</td>
+    </tr>
+    <tr>
+      <td>purchaselist</td>
+      <td>string</td>
+      <td>商品信息实体beanlist</td>
+    </tr>
+    <tr>
+      <td>errorno</td>
+      <td>string</td>
+      <td>仅在status 为false 的时候返回，    0：查询失败，游戏可以再次拉起查询，请不要一直尝试。  -1: 因为某些特殊原因，请显示默认货币</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>purchaselist 示例:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">purchaselist</span> <span class="o">=</span> <span class="s">"{"</span><span class="mi">1001</span><span class="s">":"</span><span class="err">$</span><span class="mf">0.99</span><span class="s">","</span><span class="mi">1002</span><span class="s">":"</span><span class="err">$</span><span class="mf">4.99</span><span class="s">"}"</span><span class="o">;</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>productId</td>
+      <td>string</td>
+      <td>商品id</td>
+    </tr>
+    <tr>
+      <td>price</td>
+      <td>string</td>
+      <td>商品当前价格 带货币符号   ￥6/$0.99</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回示例:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">doPurchaseListDoneList</span> <span class="o">=</span> <span class="s">"{"</span><span class="n">status</span><span class="s">":true,"</span><span class="n">purchaselist</span><span class="s">":"</span><span class="o">{</span><span class="s">"1001"</span><span class="o">:</span><span class="s">"$0.99"</span><span class="o">,</span><span class="s">"1002"</span><span class="o">:</span><span class="s">"$4.99"</span><span class="o">}</span><span class="s">"}"</span><span class="o">;</span>
+
+<span class="n">doPurchaseListDone</span><span class="o">(</span><span class="n">purchaselist</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="419-翻译">4.19 翻译</h3>
+
+<p>当游戏需要对任何语言进行翻译时，调用以下方法，该方法会返回源语言对应当前手机语言的翻译。</p>
+
+<p>调用示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doTranslation</span><span class="o">(</span><span class="nc">String</span> <span class="n">sourceText</span><span class="o">,</span><span class="nc">String</span> <span class="n">extra</span><span class="o">)</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>sourceText</td>
+      <td>string</td>
+      <td>源语言，待翻译的语句</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>当前语句的唯一标识，在返回的时候会透传</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>在翻译结束后，会给游戏相应的回调</p>
+
+<p>返回示例:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">doTranslationDoneText</span> <span class="o">=</span> <span class="s">"{"</span><span class="n">status</span><span class="s">":true,"</span><span class="n">targetText</span><span class="s">":"</span><span class="n">hello</span><span class="s">","</span><span class="n">extra</span><span class="s">":"</span><span class="n">test1</span><span class="err">"</span><span class="o">};</span>
+
+<span class="n">doTranslationDone</span><span class="o">(</span><span class="n">doTranslationDoneText</span><span class="o">);</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>status</td>
+      <td>boolean</td>
+      <td>true : 翻译成功   false : 翻译失败（源语言识别失败，翻译失败等各种原因）</td>
+    </tr>
+    <tr>
+      <td>targetText</td>
+      <td>string</td>
+      <td>若翻译成功，则返回翻译文字</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>翻译前的透传信息</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="420-ios刘海屏适配接口ios适配可选">4.20 IOS刘海屏适配接口（IOS适配，可选）</h3>
+
+<p>如果游戏在在IOS适配刘海屏困难，可以调用这个接口获得屏幕宽度和高度，便于CP适配。
+为了适应白鹭的JS交互方式，所以实现上，我们使用doReady接口作为CP发起的接口，doResize作为由CP发起，获得高度的方法。</p>
+
+<p><strong>接口定义：doReady()</strong></p>
+
+<p>此接口请在游戏第一次加载完资源时调用，只有调用此接口后，doResize接口才可用。</p>
+
+<p><strong>接口定义：doResize(): string</strong></p>
+
+<p>当调用过doReady()接口后，才能调用doResize接口，它会返回正常webview与屏幕底部/顶部的距离，单位是pixel</p>
+
+<p>java示例：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doReady</span><span class="o">();</span>
+
+<span class="c1">//Timeout只为了表示是异步调用</span>
+<span class="n">setTimeout</span><span class="o">(</span><span class="n">function</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">let</span> <span class="n">height</span> <span class="o">=</span> <span class="n">doResize</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="sc">'|'</span><span class="o">);</span>
+    <span class="n">console</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="err">'</span><span class="n">顶部高度</span><span class="err">：'</span> <span class="o">+</span> <span class="n">height</span><span class="o">[</span><span class="mi">0</span><span class="o">]);</span>
+    <span class="n">console</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="err">'</span><span class="n">底部高度</span><span class="err">：'</span> <span class="o">+</span> <span class="n">height</span><span class="o">[</span><span class="mi">1</span><span class="o">]);</span>
+<span class="o">},</span><span class="mi">200</span><span class="o">)</span>
+
+<span class="c1">//输出：</span>
+<span class="c1">//顶部高度：xxx</span>
+<span class="c1">//底部高度：xxx</span>
+</code></pre></div></div>
+
+<h3 id="421-各个平台跳转">4.21 各个平台跳转</h3>
+
+<p>游戏跳转第三方平台粉丝页，评价</p>
+
+<p><strong>接口定义：openPlatform(String info)</strong></p>
+
+<p>点击粉丝平台</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>String info ="{"code":"1","info":"http://fenshi","pageid":"12345676"}"
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>code</td>
+      <td>string</td>
+      <td>code :1 韩国论坛 2 Facebook 3 洛比 4 应用商店 5吐槽6其他</td>
+    </tr>
+    <tr>
+      <td>info</td>
+      <td>string</td>
+      <td>链接地址/包名/应用ID (无参数默认给个空字符)</td>
+    </tr>
+    <tr>
+      <td>pageid</td>
+      <td>sring</td>
+      <td>粉丝页ID(无参数默认给个空字符)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="-5-h5端对接">## 5. H5端对接</h3>
+
+<p>请先包含JS文件：https://g.hkpctimes.com/js/open.js?v=20160718001</p>
+
+<h2 id="51-h5端支付接口">5.1 H5端支付接口</h2>
+
+<p>如果游戏要支持H5端，则需要额外对接H5端的支付接口。</p>
+
+<p>调用支付</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">OPEN</span><span class="p">.</span><span class="nx">goToPay</span><span class="p">(</span><span class="nx">appId</span><span class="p">,</span><span class="nx">productId</span><span class="p">,</span><span class="nx">productName</span><span class="p">,</span><span class="nx">price</span><span class="p">,</span><span class="nx">extra</span><span class="p">,</span><span class="nx">sign</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>appId</td>
+      <td>int</td>
+      <td>游戏ID</td>
+    </tr>
+    <tr>
+      <td>productId</td>
+      <td>int</td>
+      <td>商品ID</td>
+    </tr>
+    <tr>
+      <td>productName</td>
+      <td>string</td>
+      <td>商品名称(不参与签名)</td>
+    </tr>
+    <tr>
+      <td>price</td>
+      <td>int</td>
+      <td>支付费用(单位:分)</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>自定义参数，判断唯一，用于存放游戏订单号</td>
+    </tr>
+    <tr>
+      <td>sign</td>
+      <td>string</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>sign签名</strong></p>
+
+<p>将key按照字母升序排列,然后使用&amp;连接,再加上app私钥(只有App_Secret不由&amp;连接),最后计算md5值。如</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>appId 1
+productId 123
+price 123
+extra 123
+sign = md5(appId=1&amp;extra=123&amp;price=123&amp;productId=123APP_SECRET)
+</code></pre></div></div>
+
+<h3 id="52-事件回传-根据游戏具体场景接入">5.2 事件回传 （根据游戏具体场景接入）</h3>
+
+<p>此接口包含游戏内多个场景的数据打点，接入要求如下：</p>
+
+<ul>
+  <li>创建⻆角⾊色数据:如果游戏设计有⻆角⾊色存在，必须接⼊入</li>
+  <li>新⼿手引导完成:如果游戏有新⼿手引导，则必须接⼊入</li>
+  <li>玩家等级数据:如果游戏设计中有等级，则必须在⽤用户等级变化时上报</li>
+  <li>展示选区界⾯面:尽量量接⼊入</li>
+  <li>点击选区按钮:尽量量接⼊入</li>
+  <li>展示创⻆角界⾯面:尽量量接⼊入</li>
+  <li>点击创⻆角按钮:尽量量接⼊入</li>
+</ul>
+
+<p><strong>接口定义</strong></p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nx">OPEN</span><span class="p">.</span><span class="nx">spot</span><span class="p">(</span><span class="nx">appId</span><span class="p">,</span><span class="nx">spotType</span><span class="p">,</span><span class="nx">extra</span><span class="p">,</span><span class="nx">sign</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>参数：</strong>
+| 字段        | 类型   | 说明                                     |
+| ————— | ———- | ——————————————– |
+| appId       | int    | 游戏ID                                   |
+| spotType | int    | 事件类型：1.创建角色数据；2.新手引导完成数据；3.玩家等级数据；10.展示选区界面；11.选区界面点击开始按钮；12.展示创角界面；13.创角界面点击进入游戏按钮 |
+| extra       | string | 事件参数：{‘roleName’:’角色名称’, ‘roleServer’:’角色区服’, ‘roleLevel’:’角色等级’}，无数据时非必填 |
+| sign        | string |</p>
+
+<p><strong>sign签名</strong></p>
+
+<p>将key按照字母升序排列,然后使用&amp;连接,再加上app私钥(只有App_Secret不由&amp;连接),最后计算md5值。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>appId 1
+spotType 1
+extra {'roleName':'⻆角⾊色名称', 'roleServer':'⻆角⾊色区服', 'roleLevel':'⻆角⾊色等级'} sign = md5(appId=1&amp;extra={'roleName':'⻆角⾊色名称', 'roleServer':'⻆角⾊色区服', 'roleLevel':'⻆角⾊色等级'}&amp;spotType=1APP_SECREET)
+</code></pre></div></div>
+
+<h2 id="6-支付流程参考">6. 支付流程参考</h2>
+
+<p>不论是IOS还是Android端，支付流程都是相同的，如果对支付流程不理解，可以通过下图了解。</p>
+
+<p>支付流程图：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    graph TD
+
+    subgraph CP前端
+    start((开始流程)) --&gt; doPay[调用doPay接口]
+    end
+
+    subgraph Gm88前端
+    doPay --&gt; pay{用户Google/Apple支付}
+    pay --&gt; |支付失败|failEnd((流程结束))
+    end
+
+
+    subgraph Gm88后端
+    BSuccess[向Google/Apple验证支付]
+    BResponseSuccess[发货成功] --&gt;
+    successEnd((流程成功))
+    end
+    BSuccess --&gt; |发起支付回调|CBRecive
+
+    subgraph CP后端
+    CBRecive{发货}
+    CBSendRetry[重新发货]
+    CBSent[响应ok] --&gt; BResponseSuccess
+    CBRecive --&gt; |成功|CBSent
+    CBRecive --&gt; |失败|CBSendRetry
+    CBSendRetry -.-&gt; |重试发货|CBRecive
+    end
+
+    pay --&gt; |支付成功|BSuccess
+</code></pre></div></div>
+</div><div class="d-print-none"><footer class="article__footer"><!-- start custom article footer snippet -->
+
+<!-- end custom article footer snippet -->
+<div class="article__license"></div></footer>
+<div class="article__section-navigator clearfix"><div class="previous"><span>PREVIOUS</span><a href="/Ios/Global-StandAlone/docs/DOCUMENT.html">IOS海外单机</a></div></div></div>
+
+</div>
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    $(function() {
+      var $this ,$scroll;
+      var $articleContent = $('.js-article-content');
+      var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+      var scroll = hasSidebar ? '.js-page-main' : 'html, body';
+      $scroll = $(scroll);
+
+      $articleContent.find('.highlight').each(function() {
+        $this = $(this);
+        $this.attr('data-lang', $this.find('code').attr('data-lang'));
+      });
+      $articleContent.find('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').each(function() {
+        $this = $(this);
+        $this.append($('<a class="anchor d-print-none" aria-hidden="true"></a>').html('<i class="fas fa-anchor"></i>'));
+      });
+      $articleContent.on('click', '.anchor', function() {
+        $scroll.scrollToAnchor('#' + $(this).parent().attr('id'), 400);
+      });
+    });
+  });
+})();
+</script>
+</div><section class="page__comments d-print-none"></section></article><!-- start custom main bottom snippet -->
+
+<!-- end custom main bottom snippet -->
+</div>
+            </div></div></div><div class="page__footer d-print-none">
+<footer class="footer py-4 js-page-footer">
+  <div class="main"><div itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="怪猫TP"><meta itemprop="url" content="/"><div class="footer__author-links"><div class="author-links">
+  <ul class="menu menu--nowrap menu--inline"></ul>
+</div>
+</div>
+    </div><div class="site-info mt-2">
+      <div>© GM88 游戏 SDK 2020,
+        Powered by <a title="Jekyll is a simple, blog-aware, static site generator." href="http://jekyllrb.com/">Jekyll</a> & <a
+        title="TeXt is a super customizable Jekyll theme." href="https://github.com/kitian616/jekyll-TeXt-theme">TeXt Theme</a>.
+      </div>
+    </div>
+  </div>
+</footer>
+</div></div>
+    </div></div></div><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $body = $('body'), $window = $(window);
+    var $pageRoot = $('.js-page-root'), $pageMain = $('.js-page-main');
+    var activeCount = 0;
+    function modal(options) {
+      var $root = this, visible, onChange, hideWhenWindowScroll = false;
+      var scrollTop;
+      function setOptions(options) {
+        var _options = options || {};
+        visible = _options.initialVisible === undefined ? false : show;
+        onChange = _options.onChange;
+        hideWhenWindowScroll = _options.hideWhenWindowScroll;
+      }
+      function init() {
+        setState(visible);
+      }
+      function setState(isShow) {
+        if (isShow === visible) {
+          return;
+        }
+        visible = isShow;
+        if (visible) {
+          activeCount++;
+          scrollTop = $(window).scrollTop() || $pageMain.scrollTop();
+          $root.addClass('modal--show');
+          $pageMain.scrollTop(scrollTop);
+          activeCount === 1 && ($pageRoot.addClass('show-modal'), $body.addClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.on('scroll', hide);
+          $window.on('keyup', handleKeyup);
+        } else {
+          activeCount > 0 && activeCount--;
+          $root.removeClass('modal--show');
+          $window.scrollTop(scrollTop);
+          activeCount === 0 && ($pageRoot.removeClass('show-modal'), $body.removeClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.off('scroll', hide);
+          $window.off('keyup', handleKeyup);
+        }
+        onChange && onChange(visible);
+      }
+      function show() {
+        setState(true);
+      }
+      function hide() {
+        setState(false);
+      }
+      function handleKeyup(e) {
+        // Char Code: 27  ESC
+        if (e.which ===  27) {
+          hide();
+        }
+      }
+      setOptions(options);
+      init();
+      return {
+        show: show,
+        hide: hide,
+        $el: $root
+      };
+    }
+    $.fn.modal = modal;
+  });
+})();
+</script><div class="modal modal--overflow page__search-modal d-print-none js-page-search-modal"><script>
+(function () {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    // search panel
+    var search = (window.search || (window.search = {}));
+    var useDefaultSearchBox = window.useDefaultSearchBox === undefined ?
+      true : window.useDefaultSearchBox ;
+
+    var $searchModal = $('.js-page-search-modal');
+    var $searchToggle = $('.js-search-toggle');
+    var searchModal = $searchModal.modal({ onChange: handleModalChange, hideWhenWindowScroll: true });
+    var modalVisible = false;
+    search.searchModal = searchModal;
+
+    var $searchBox = null;
+    var $searchInput = null;
+    var $searchClear = null;
+
+    function getModalVisible() {
+      return modalVisible;
+    }
+    search.getModalVisible = getModalVisible;
+
+    function handleModalChange(visible) {
+      modalVisible = visible;
+      if (visible) {
+        search.onShow && search.onShow();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].focus();
+      } else {
+        search.onShow && search.onHide();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].blur();
+        setTimeout(function() {
+          useDefaultSearchBox && ($searchInput.val(''), $searchBox.removeClass('not-empty'));
+          search.clear && search.clear();
+          window.pageAsideAffix && window.pageAsideAffix.refresh();
+        }, 400);
+      }
+    }
+
+    $searchToggle.on('click', function() {
+      modalVisible ? searchModal.hide() : searchModal.show();
+    });
+    // Char Code: 83  S, 191 /
+    $(window).on('keyup', function(e) {
+      if (!modalVisible && !window.isFormElement(e.target || e.srcElement) && (e.which === 83 || e.which === 191)) {
+        modalVisible || searchModal.show();
+      }
+    });
+
+    if (useDefaultSearchBox) {
+      $searchBox = $('.js-search-box');
+      $searchInput = $searchBox.children('input');
+      $searchClear = $searchBox.children('.js-icon-clear');
+      search.getSearchInput = function() {
+        return $searchInput.get(0);
+      };
+      search.getVal = function() {
+        return $searchInput.val();
+      };
+      search.setVal = function(val) {
+        $searchInput.val(val);
+      };
+
+      $searchInput.on('focus', function() {
+        $(this).addClass('focus');
+      });
+      $searchInput.on('blur', function() {
+        $(this).removeClass('focus');
+      });
+      $searchInput.on('input', window.throttle(function() {
+        var val = $(this).val();
+        if (val === '' || typeof val !== 'string') {
+          search.clear && search.clear();
+        } else {
+          $searchBox.addClass('not-empty');
+          search.onInputNotEmpty && search.onInputNotEmpty(val);
+        }
+      }, 400));
+      $searchClear.on('click', function() {
+        $searchInput.val(''); $searchBox.removeClass('not-empty');
+        search.clear && search.clear();
+      });
+    }
+  });
+})();
+</script><div class="search search--dark">
+  <div class="main">
+    <div class="search__header">Search</div>
+    <div class="search-bar">
+      <div class="search-box js-search-box">
+        <div class="search-box__icon-search"><i class="fas fa-search"></i></div>
+        <input type="text" />
+        <div class="search-box__icon-clear js-icon-clear">
+          <a><i class="fas fa-times"></i></a>
+        </div>
+      </div>
+      <button class="button button--theme-dark button--pill search__cancel js-search-toggle">
+        Cancel</button>
+    </div>
+    <div class="search-result js-search-result"></div>
+  </div>
+</div>
+<script>var SOURCES = window.TEXT_VARIABLES.sources;
+var PAHTS = window.TEXT_VARIABLES.paths;
+window.Lazyload.js([SOURCES.jquery, PAHTS.search_js], function() {
+  var search = (window.search || (window.search = {}));
+  var searchData = window.TEXT_SEARCH_DATA || {};
+
+  function memorize(f) {
+    var cache = {};
+    return function () {
+      var key = Array.prototype.join.call(arguments, ',');
+      if (key in cache) return cache[key];
+      else return cache[key] = f.apply(this, arguments);
+    };
+  }
+
+  /// search
+  function searchByQuery(query) {
+    var i, j, key, keys, cur, _title, result = {};
+    keys = Object.keys(searchData);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      for (j = 0; j < searchData[key].length; j++) {
+        cur = searchData[key][j], _title = cur.title;
+        if ((result[key] === undefined || result[key] && result[key].length < 4 )
+          && _title.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+          if (result[key] === undefined) {
+            result[key] = [];
+          }
+          result[key].push(cur);
+        }
+      }
+    }
+    return result;
+  }
+
+  var renderHeader = memorize(function(header) {
+    return $('<p class="search-result__header">' + header + '</p>');
+  });
+
+  var renderItem = function(index, title, url) {
+    return $('<li class="search-result__item" data-index="' + index + '"><a class="button" href="' + url + '">' + title + '</a></li>');
+  };
+
+  function render(data) {
+    if (!data) { return null; }
+    var $root = $('<ul></ul>'), i, j, key, keys, cur, itemIndex = 0;
+    keys = Object.keys(data);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      $root.append(renderHeader(key));
+      for (j = 0; j < data[key].length; j++) {
+        cur = data[key][j];
+        $root.append(renderItem(itemIndex++, cur.title, cur.url));
+      }
+    }
+    return $root;
+  }
+
+  // search box
+  var $result = $('.js-search-result'), $resultItems;
+  var lastActiveIndex, activeIndex;
+
+  function clear() {
+    $result.html(null);
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+  }
+  function onInputNotEmpty(val) {
+    $result.html(render(searchByQuery(val)));
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+    $resultItems.eq(0).addClass('active');
+  }
+
+  search.clear = clear;
+  search.onInputNotEmpty = onInputNotEmpty;
+
+  function updateResultItems() {
+    lastActiveIndex >= 0 && $resultItems.eq(lastActiveIndex).removeClass('active');
+    activeIndex >= 0 && $resultItems.eq(activeIndex).addClass('active');
+  }
+
+  function moveActiveIndex(direction) {
+    var itemsCount = $resultItems ? $resultItems.length : 0;
+    if (itemsCount > 1) {
+      lastActiveIndex = activeIndex;
+      if (direction === 'up') {
+        activeIndex = (activeIndex - 1 + itemsCount) % itemsCount;
+      } else if (direction === 'down') {
+        activeIndex = (activeIndex + 1 + itemsCount) % itemsCount;
+      }
+      updateResultItems();
+    }
+  }
+
+  // Char Code: 13  Enter, 37  ⬅, 38  ⬆, 39  ➡, 40  ⬇
+  $(window).on('keyup', function(e) {
+    var modalVisible = search.getModalVisible && search.getModalVisible();
+    if (modalVisible) {
+      if (e.which === 38) {
+        modalVisible && moveActiveIndex('up');
+      } else if (e.which === 40) {
+        modalVisible && moveActiveIndex('down');
+      } else if (e.which === 13) {
+        modalVisible && $resultItems && activeIndex >= 0 && $resultItems.eq(activeIndex).children('a')[0].click();
+      }
+    }
+  });
+
+  $result.on('mouseover', '.search-result__item > a', function() {
+    var itemIndex = $(this).parent().data('index');
+    itemIndex >= 0 && (lastActiveIndex = activeIndex, activeIndex = itemIndex, updateResultItems());
+  });
+});
+</script>
+</div></div>
+
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function scrollToAnchor(anchor, duration, callback) {
+      var $root = this;
+      $root.animate({ scrollTop: $(anchor).position().top }, duration, function() {
+        window.history.replaceState(null, '', window.location.href.split('#')[0] + anchor);
+        callback && callback();
+      });
+    }
+    $.fn.scrollToAnchor = scrollToAnchor;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function affix(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroll,
+        offsetBottom = 0, scrollTarget = window, scroll = window.document, disabled = false, isOverallScroller = true,
+        rootTop, rootLeft, rootHeight, scrollBottom, rootBottomTop,
+        hasInit = false, curState;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.offsetBottom && (offsetBottom = _options.offsetBottom);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroll && (scroll = _options.scroll);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $scrollTarget = $(scrollTarget);
+        isOverallScroller = window.isOverallScroller($scrollTarget[0]);
+        $scroll = $(scroll);
+      }
+      function preCalc() {
+        top();
+        rootHeight = $root.outerHeight();
+        rootTop = $root.offset().top + (isOverallScroller ? 0 :  $scrollTarget.scrollTop());
+        rootLeft = $root.offset().left;
+      }
+      function calc(needPreCalc) {
+        needPreCalc && preCalc();
+        scrollBottom = $scroll.outerHeight() - offsetBottom - rootHeight;
+        rootBottomTop = scrollBottom - rootTop;
+      }
+      function top() {
+        if (curState !== 'top') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: 0
+          });
+          curState = 'top';
+        }
+      }
+      function fixed() {
+        if (curState !== 'fixed') {
+          $root.addClass('fixed').css({
+            left: rootLeft + 'px',
+            top: 0
+          });
+          curState = 'fixed';
+        }
+      }
+      function bottom() {
+        if (curState !== 'bottom') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: rootBottomTop + 'px'
+          });
+          curState = 'bottom';
+        }
+      }
+      function setState() {
+        var scrollTop = $scrollTarget.scrollTop();
+        if (scrollTop >= rootTop && scrollTop <= scrollBottom) {
+          fixed();
+        } else if (scrollTop < rootTop) {
+          top();
+        } else {
+          bottom();
+        }
+      }
+      function init() {
+        if(!hasInit) {
+          var interval, timeout;
+          calc(true); setState();
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState();
+          });
+          $window.on('resize', function() {
+            disabled || (calc(true), setState());
+          });
+          hasInit = true;
+        }
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions,
+        refresh: function() {
+          calc(true, { animation: false }); setState();
+        }
+      };
+    }
+    $.fn.affix = affix;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function toc(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroller, $tocUl = $('<ul class="toc toc--ellipsis"></ul>'), $tocLi, $headings, $activeLast, $activeCur,
+        selectors = 'h1,h2,h3', container = 'body', scrollTarget = window, scroller = 'html, body', disabled = false,
+        headingsPos, scrolling = false, hasRendered = false, hasInit = false;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.selectors && (selectors = _options.selectors);
+        _options.container && (container = _options.container);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroller && (scroller = _options.scroller);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $headings = $(container).find(selectors).filter('[id]');
+        $scrollTarget = $(scrollTarget);
+        $scroller = $(scroller);
+      }
+      function calc() {
+        headingsPos = [];
+        $headings.each(function() {
+          headingsPos.push(Math.floor($(this).position().top));
+        });
+      }
+      function setState(element, disabled) {
+        var scrollTop = $scrollTarget.scrollTop(), i;
+        if (disabled || !headingsPos || headingsPos.length < 1) { return; }
+        if (element) {
+          $activeCur = element;
+        } else {
+          for (i = 0; i < headingsPos.length; i++) {
+            if (scrollTop >= headingsPos[i]) {
+              $activeCur = $tocLi.eq(i);
+            } else {
+              $activeCur || ($activeCur = $tocLi.eq(i));
+              break;
+            }
+          }
+        }
+        $activeLast && $activeLast.removeClass('active');
+        ($activeLast = $activeCur).addClass('active');
+      }
+      function render() {
+        if(!hasRendered) {
+          $root.append($tocUl);
+          $headings.each(function() {
+            var $this = $(this);
+            $tocUl.append($('<li></li>').addClass('toc-' + $this.prop('tagName').toLowerCase())
+              .append($('<a></a>').text($this.text()).attr('href', '#' + $this.prop('id'))));
+          });
+          $tocLi = $tocUl.children('li');
+          $tocUl.on('click', 'a', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            scrolling = true;
+            setState($this.parent());
+            $scroller.scrollToAnchor($this.attr('href'), 400, function() {
+              scrolling = false;
+            });
+          });
+        }
+        hasRendered = true;
+      }
+      function init() {
+        var interval, timeout;
+        if(!hasInit) {
+          render(); calc(); setState(null, scrolling);
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState(null, scrolling);
+          });
+          $window.on('resize', window.throttle(function() {
+            if (!disabled) {
+              render(); calc(); setState(null, scrolling);
+            }
+          }, 100));
+        }
+        hasInit = true;
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions
+      };
+    }
+    $.fn.toc = toc;
+  });
+})();
+/*(function () {
+
+})();*/
+</script><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $pageMask = $('.js-page-mask');
+    var $pageRoot = $('.js-page-root');
+    var $sidebarShow = $('.js-sidebar-show');
+    var $sidebarHide = $('.js-sidebar-hide');
+
+    function freeze(e) {
+      if (e.target === $pageMask[0]) {
+        e.preventDefault();
+      }
+    }
+    function stopBodyScrolling(bool) {
+      if (bool === true) {
+        window.addEventListener('touchmove', freeze, { passive: false });
+      } else {
+        window.removeEventListener('touchmove', freeze, { passive: false });
+      }
+    }
+
+    $sidebarShow.on('click', function() {
+      stopBodyScrolling(true); $pageRoot.addClass('show-sidebar');
+    });
+    $sidebarHide.on('click', function() {
+      stopBodyScrolling(false); $pageRoot.removeClass('show-sidebar');
+    });
+  });
+})();
+</script><script>
+  /* toc must before affix, since affix need to konw toc' height. */(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  var TOC_SELECTOR = window.TEXT_VARIABLES.site.toc.selectors;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window);
+    var $articleContent = $('.js-article-content');
+    var $tocRoot = $('.js-toc-root'), $col2 = $('.js-col-aside');
+    var toc;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+    var hasToc = $articleContent.find(TOC_SELECTOR).length > 0;
+
+    function disabled() {
+      return $col2.css('display') === 'none' || !hasToc;
+    }
+
+    tocDisabled = disabled();
+
+    toc = $tocRoot.toc({
+      selectors: TOC_SELECTOR,
+      container: $articleContent,
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      tocDisabled = disabled();
+      toc && toc.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window), $pageFooter = $('.js-page-footer');
+    var $pageAside = $('.js-page-aside');
+    var affix;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+
+    affix = $pageAside.affix({
+      offsetBottom: $pageFooter.outerHeight(),
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      scroll: hasSidebar ? $('.js-page-main').children() : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      affix && affix.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+    window.pageAsideAffix = affix;
+  });
+})();
+</script>
+    </div>
+    <script>(function () {
+  var $root = document.getElementsByClassName('root')[0];
+  if (window.hasEvent('touchstart')) {
+    $root.dataset.isTouch = true;
+    document.addEventListener('touchstart', function(){}, false);
+  }
+})();
+</script>
+  </body>
+</html>
+

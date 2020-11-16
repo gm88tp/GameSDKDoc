@@ -1,0 +1,49 @@
+/* 
+  wfnji.strings
+  loginSDK
+
+  Created by GM on 2019/1/2.
+  Copyright © 2019年 gumo. All rights reserved.
+*/
+"app_name"="The Castellan of The Three Kingdoms";
+"wfnji_change_acount" = "Switch account";
+"wfnji_choose_logintype" = "Sign in with";
+"wfnji_login_fast" = "GUEST";
+"wfnji_userinfo" = "Dear players：";
+"wfnji_email_info" = " If you have any questions , please do not hesitate to get in touch with us! We will be happy to help you!";
+"wfnji_email_address"= "Email:";
+"wfnji_login_fast_tips"= "In Guest Mode, the In-game data will be lost After uninstalling and reinstalling the game. Are you sure to sign in with the Guest Mode? ";
+"wfnji_login_cancel" = "Cancel";
+"wfnji_exit_tips" = "Notification";
+"wfnji_loading_tips"="Loading…";
+"wfnji_login_loading" = "Loading…";
+"wfnji_wecolome"="Welcome to the game";
+"wfnji_payinfo"="Operation orders too frequently, please try again later～";
+"wfnji_orderfailur"="Generate the order failed ～";
+"wfnji_update"="Update tip";
+"wfnji_update_detaile"="Game version update";
+"wfnji_update_yes"="Confirm";
+"wfnji_P_cancel"="Purchase cancelled";
+"wfnji_p_success"="Purchase successded";
+"wfnji_p_failure"="Purchase failed";
+"wfnji_Line"="Line";
+"wfnji_FaceBook"="Facebook";
+"wfnji_Google"="Google";
+"wfnji_load"="Log In";
+"wfnji_regist"="Sign Up";
+"wfnji_accplaceholder"="Account";
+"wfnji_pasplaceholder"="Password";
+"wfnji_emaplaceholder"="Email";
+"wfnji_changetologin"="Already have an account?";
+"wfnji_style"="Change login mode";
+"wfnji_rgeistload"="Sign up and Login";
+"wfnji_accbind"="Link Account";
+"wfnji_confimbind"="Confirm Login";
+"wfnji_accpromot"="Account";
+"wfnji_paspromot"="Password";
+"wfnji_emailpromot"="Email";
+"wfnji_jump" ="Skip";
+"wfnji_strat"="Start";
+"wfnji_mark_confirm"="Rate";
+"wfnji_mark_content"="Do you have any suggestions for us?";
+"wfnji_end_veiw" ="Close";

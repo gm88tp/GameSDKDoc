@@ -1,0 +1,2660 @@
+<!DOCTYPE html><html lang="zh_CN">
+  <head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>GM88 游戏 SDK</title>
+
+<meta name="description" content="GM88 游戏 SDK 文档
+">
+<link rel="canonical" href="/Ios/Global/docs/DOCUMENT.html"><link rel="alternate" type="application/rss+xml" title="GM88 游戏 SDK" href="/feed.xml"><!-- start favicons snippet, use https://realfavicongenerator.net/ --><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#fc4d50"><link rel="shortcut icon" href="/assets/favicon.ico">
+
+<meta name="msapplication-TileColor" content="#ffc40d"><meta name="msapplication-config" content="/assets/browserconfig.xml">
+
+<meta name="theme-color" content="#ffffff">
+<!-- end favicons snippet --><link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" ><!-- start custom head snippets -->
+
+<!-- end custom head snippets -->
+<script>(function() {
+  window.isArray = function(val) {
+    return Object.prototype.toString.call(val) === '[object Array]';
+  };
+  window.isString = function(val) {
+    return typeof val === 'string';
+  };
+
+  window.hasEvent = function(event) {
+    return 'on'.concat(event) in window.document;
+  };
+
+  window.isOverallScroller = function(node) {
+    return node === document.documentElement || node === document.body || node === window;
+  };
+
+  window.isFormElement = function(node) {
+    var tagName = node.tagName;
+    return tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
+  };
+
+  window.pageLoad = (function () {
+    var loaded = false, cbs = [];
+    window.addEventListener('load', function () {
+      var i;
+      loaded = true;
+      if (cbs.length > 0) {
+        for (i = 0; i < cbs.length; i++) {
+          cbs[i]();
+        }
+      }
+    });
+    return {
+      then: function(cb) {
+        cb && (loaded ? cb() : (cbs.push(cb)));
+      }
+    };
+  })();
+})();
+(function() {
+  window.throttle = function(func, wait) {
+    var args, result, thisArg, timeoutId, lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+    return function() {
+      var now = new Date,
+        remaining = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remaining <= 0) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      } else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remaining);
+      }
+      return result;
+    };
+  };
+})();
+(function() {
+  var Set = (function() {
+    var add = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (data[i] === item) {
+          return;
+        }
+      }
+      this.size ++;
+      data.push(item);
+      return data;
+    };
+
+    var Set = function(data) {
+      this.size = 0;
+      this._data = [];
+      var i;
+      if (data.length > 0) {
+        for (i = 0; i < data.length; i++) {
+          add.call(this, data[i]);
+        }
+      }
+    };
+    Set.prototype.add = add;
+    Set.prototype.get = function(index) { return this._data[index]; };
+    Set.prototype.has = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (this.get(i) === item) {
+          return true;
+        }
+      }
+      return false;
+    };
+    Set.prototype.is = function(map) {
+      if (map._data.length !== this._data.length) { return false; }
+      var i, j, flag, tData = this._data, mData = map._data;
+      for (i = 0; i < tData.length; i++) {
+        for (flag = false, j = 0; j < mData.length; j++) {
+          if (tData[i] === mData[j]) {
+            flag = true;
+            break;
+          }
+        }
+        if (!flag) { return false; }
+      }
+      return true;
+    };
+    Set.prototype.values = function() {
+      return this._data;
+    };
+    return Set;
+  })();
+
+  window.Lazyload = (function(doc) {
+    var queue = {js: [], css: []}, sources = {js: {}, css: {}}, context = this;
+    var createNode = function(name, attrs) {
+      var node = doc.createElement(name), attr;
+      for (attr in attrs) {
+        if (attrs.hasOwnProperty(attr)) {
+          node.setAttribute(attr, attrs[attr]);
+        }
+      }
+      return node;
+    };
+    var end = function(type, url) {
+      var s, q, qi, cbs, i, j, cur, val, flag;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        s[url] = true;
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (cur.urls.has(url)) {
+            qi = cur, val = qi.urls.values();
+            qi && (cbs = qi.callbacks);
+            for (flag = true, j = 0; j < val.length; j++) {
+              cur = val[j];
+              if (!s[cur]) {
+                flag = false;
+              }
+            }
+            if (flag && cbs && cbs.length > 0) {
+              for (j = 0; j < cbs.length; j++) {
+                cbs[j].call(context);
+              }
+              qi.load = true;
+            }
+          }
+        }
+      }
+    };
+    var load = function(type, urls, callback) {
+      var s, q, qi, node, i, cur,
+        _urls = typeof urls === 'string' ? new Set([urls]) : new Set(urls), val, url;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (_urls.is(cur.urls)) {
+            qi = cur;
+            break;
+          }
+        }
+        val = _urls.values();
+        if (qi) {
+          callback && (qi.load || qi.callbacks.push(callback));
+          callback && (qi.load && callback());
+        } else {
+          q.push({
+            urls: _urls,
+            callbacks: callback ? [callback] : [],
+            load: false
+          });
+          for (i = 0; i < val.length; i++) {
+            node = null, url = val[i];
+            if (s[url] === undefined) {
+              (type === 'js' ) && (node = createNode('script', { src: url }));
+              (type === 'css') && (node = createNode('link', { rel: 'stylesheet', href: url }));
+              if (node) {
+                node.onload = (function(type, url) {
+                  return function() {
+                    end(type, url);
+                  };
+                })(type, url);
+                (doc.head || doc.body).appendChild(node);
+                s[url] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+    return {
+      js: function(url, callback) {
+        load('js', url, callback);
+      },
+      css: function(url, callback) {
+        load('css', url, callback);
+      }
+    };
+  })(this.document);
+})();
+</script><script>
+  (function() {
+    var TEXT_VARIABLES = {
+      version: '2.2.6',
+      sources: {
+        font_awesome: 'https://use.fontawesome.com/releases/v5.0.13/css/all.css',
+        jquery: 'https://unpkg.com/jquery@3.3.1/dist/jquery.min.js',
+        leancloud_js_sdk: '//cdn.jsdelivr.net/npm/leancloud-storage@3.13.2/dist/av-min.js',
+        chart: 'https://unpkg.com/chart.js@2.7.2/dist/Chart.min.js',
+        gitalk: {
+          js: 'https://unpkg.com/gitalk@1.2.2/dist/gitalk.min.js',
+          css: 'https://unpkg.com/gitalk@1.2.2/dist/gitalk.css'
+        },
+        valine: 'https//unpkg.com/valine/dist/Valine.min.js',
+        mathjax: 'https://unpkg.com/mathjax@2.7.4/unpacked/MathJax.js?config=TeX-MML-AM_CHTML',
+        mermaid: 'https://unpkg.com/mermaid@8.0.0-rc.8/dist/mermaid.min.js'
+      },
+      site: {
+        toc: {
+          selectors: 'h1,h2,h3'
+        }
+      },
+      paths: {
+        search_js: '/assets/search.js'
+      }
+    };
+    window.TEXT_VARIABLES = TEXT_VARIABLES;
+  })();
+</script>
+</head>
+  <body>
+    <div class="root" data-is-touch="false">
+      <div class="layout--page layout--page--sidebar clearfix js-page-root">
+  <div class="page__mask d-print-none js-page-mask js-sidebar-hide"></div>
+  <div class="page__viewport">
+    <div class="page__actions d-print-none">
+      <div class="button button--circle button--lg box-shadow-2 sidebar-button js-sidebar-show">
+        <i class="fas fa-bars icon--show"></i>
+      </div>
+    </div>
+
+    <div class="grid page__grid">
+
+      <div class="page__sidebar d-print-none"><div class="sidebar-toc"><ul class="toc toc--navigator"><li class="toc-h1">准备工作</li><li class="toc-h2"><a href="/Start.html">开始</a></li><li class="toc-h2"><a href="/Download.html">SDK下载</a></li><li class="toc-h1">Android文档</li><li class="toc-h2"><a href="/Android/Domestic/docs/DOCUMENT.html">Android国内</a></li><li class="toc-h2"><a href="/Android/Global/docs/DOCUMENT.html">Android海外</a></li><li class="toc-h2"><a href="/Android/Global-StandAlone/docs/DOCUMENT.html">Android海外单机</a></li><li class="toc-h1">IOS文档</li><li class="toc-h2"><a href="/Ios/Domestic/docs/DOCUMENT.html">IOS国内</a></li><li class="toc-h2 active"><a href="/Ios/Global/docs/DOCUMENT.html">IOS海外</a></li><li class="toc-h2"><a href="/Ios/Global-StandAlone/docs/DOCUMENT.html">IOS海外单机</a></li></ul></div></div><div class="page__main js-page-main has-aside cell cell--auto">
+
+      <div class="page__main-inner"><div class="page__header d-print-none"><header class="header"><div class="main">
+      <div class="header__title">
+        <div class="header__brand"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="24px" height="24px" viewBox="0 0 24 24">
+<style type="text/css">
+	.st0{fill:#515151;}
+</style>
+<path class="st0" d="M1.7,22.3c5.7-5.7,11.3-5.7,17,0c3.3-3.3,3.5-5.3,0.8-6c2.7,0.7,3.5-1.1,2.3-5.6s-3.3-5.2-6.3-2.1
+	c3-3,2.3-5.2-2.1-6.3S7,1.8,7.7,4.6C7,1.8,5,2.1,1.7,5.3C7.3,11,7.3,16.7,1.7,22.3"/>
+</svg>
+<a title="GM88 游戏 SDK 文档
+" href="/">GM88 游戏 SDK</a></div><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></div><nav class="navigation">
+        <ul><li class="navigation__item"><a href="/">首页</a></li><li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li></ul>
+      </nav></div>
+  </header>
+</div><div class="page__content"><div class ="main"><div class="grid grid--reverse">
+
+              <div class="col-aside d-print-none js-col-aside"><aside class="page__aside js-page-aside"><div class="toc-aside js-toc-root"></div>
+</aside></div>
+
+              <div class="col-main cell cell--auto"><!-- start custom main top snippet -->
+
+<!-- end custom main top snippet -->
+<article itemscope itemtype="http://schema.org/Article"><div class="article__header"><header><h1></h1></header></div><meta itemprop="headline" content=""><div class="article__info clearfix"><ul class="right-col menu"></ul></div><meta itemprop="author" content="怪猫TP"/><div class="js-article-content"><div class="layout--article"><!-- start custom article top snippet -->
+
+<!-- end custom article top snippet -->
+<div class="article__content" itemprop="articleBody"><h1 id="海外sdk-ios-使用文档">海外SDK IOS 使用文档</h1>
+
+<h1 id="环境要求">环境要求</h1>
+
+<blockquote>
+  <ul>
+    <li>Mac OS X 10.10以上版本</li>
+    <li>Xcode 7.0以上版本</li>
+    <li>iOS 9.0以上版本</li>
+  </ul>
+</blockquote>
+
+<ul>
+  <li>SDK集成了登录，支付等功能。本文档详细说明相关功能在技术对接与使用过程中需要注意的地方，以便贵方能快速对接。阅读后如有疑问，请联系GM88游戏相关技术支持。</li>
+  <li>SDK目前支持语言有：简体中文，繁体中文，繁体中文（台湾），繁体中文（香港），英语，西班牙语，德语，法语，印度尼西亚语，越南语，韩语，日语，意大利语，马来语，葡萄牙语，俄语，泰语</li>
+</ul>
+
+<h1 id="准备工作">准备工作</h1>
+
+<h2 id="导入sdk">导入SDK</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>将(给到的SDK).framework、GoogleSignIn.bundle、LineSDKReesource.bundle和(根据给到SDK添加).bundle导入到您的工程中。
+</code></pre></div></div>
+
+<p>操作：</p>
+
+<p>方式一：在工程目录结构中，右键选择Add Files to…，在弹出的页面中选择 <code class="language-plaintext highlighter-rouge">(根据给到SDK添加).framework</code>，<code class="language-plaintext highlighter-rouge">GoogleSignIn.bundle</code>，<code class="language-plaintext highlighter-rouge">LineSDKReesource.bundle</code>和<code class="language-plaintext highlighter-rouge">(根据给到SDK添加).bundle</code>，勾选<strong>Copy items into destination group’s folder(if needed)</strong>，并确保<strong>Add To Targets勾选相应target</strong>。</p>
+
+<p>方式二：直接将上述文件拖入Xcode工程目录结构中，在弹出的界面中勾选<strong>Copy items into destination group’s folder(if needed)</strong>，并确保<strong>Add To Targets勾选相应target</strong>。</p>
+
+<h2 id="添加工程依赖库">添加工程依赖库</h2>
+
+<p>当前版本SDK不需要额外依赖库。</p>
+
+<h2 id="工程设置">工程设置</h2>
+
+<p><strong>1、在工程的 Build Setting 中找到 Other Linker Flags 添加  -ObjC</strong></p>
+
+<p><img src="assets/images/p1.png" alt="flags" /></p>
+
+<p><strong>2、在工程的 Build Setting 中找到 Enable Bitcode  设置成NO</strong></p>
+
+<p><img src="assets/images/p2.png" alt="bitcode" /></p>
+
+<p><strong>3、由于iOS 9 改为https，如果您的项目有使用http，可在Info.plist中添加如下代码：</strong>（右键Info.plist用source code打开）</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;key&gt;</span>NSAppTransportSecurity<span class="nt">&lt;/key&gt;</span> 
+<span class="nt">&lt;dict&gt;</span> <span class="nt">&lt;key&gt;</span>NSAllowsArbitraryLoads<span class="nt">&lt;/key&gt;</span> <span class="nt">&lt;true/&gt;</span> 
+<span class="nt">&lt;/dict&gt;</span> 
+</code></pre></div></div>
+
+<p><strong>4、如有游戏需要推送，请开启推送Capabilities中打开Background Modes（勾选Remote notifications）和Push Notifications</strong>如下图所示：</p>
+
+<p><img src="assets/images/p3.png" alt="background" /></p>
+
+<p><img src="assets/images/p4.png" alt="push" /></p>
+
+<p><strong>5、Info.plist文件配置，此配置项是为了line，Facebook，Google登录</strong></p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>          <span class="nt">&lt;key&gt;</span>CFBundleURLTypes<span class="nt">&lt;/key&gt;</span>
+          <span class="nt">&lt;array&gt;</span>
+             <span class="nt">&lt;dict&gt;</span>
+                <span class="nt">&lt;key&gt;</span>CFBundleTypeRole<span class="nt">&lt;/key&gt;</span>
+                <span class="nt">&lt;string&gt;</span>Editor<span class="nt">&lt;/string&gt;</span>
+                <span class="nt">&lt;key&gt;</span>CFBundleURLSchemes<span class="nt">&lt;/key&gt;</span>
+                <span class="nt">&lt;array&gt;</span>
+                   <span class="nt">&lt;string&gt;</span>line3rdp.$(PRODUCT_BUNDLE_IDENTIFIER)<span class="nt">&lt;/string&gt;</span>
+               <span class="nt">&lt;/array&gt;</span>
+            <span class="nt">&lt;/dict&gt;</span>
+            <span class="nt">&lt;dict&gt;</span>
+            <span class="nt">&lt;key&gt;</span>CFBundleTypeRole<span class="nt">&lt;/key&gt;</span>
+                <span class="nt">&lt;string&gt;</span>Editor<span class="nt">&lt;/string&gt;</span>
+                <span class="nt">&lt;key&gt;</span>CFBundleURLName<span class="nt">&lt;/key&gt;</span>
+                <span class="c">&lt;!---需要替换成对应参数--&gt;</span>
+                  <span class="nt">&lt;string&gt;</span>com.googleusercontent.apps.113851800254-5romtcbaom6s49osvik1p1bo5m1b66ju<span class="nt">&lt;/string&gt;</span>
+             <span class="nt">&lt;key&gt;</span>CFBundleURLSchemes<span class="nt">&lt;/key&gt;</span>
+             <span class="nt">&lt;array&gt;</span>
+              <span class="c">&lt;!---需要替换成对应参数--&gt;</span>
+               <span class="nt">&lt;string&gt;</span>com.googleusercontent.apps.113851800254-5romtcbaom6s49osvik1p1bo5m1b66ju<span class="nt">&lt;/string&gt;</span>
+            <span class="nt">&lt;/array&gt;</span>
+            <span class="nt">&lt;/dict&gt;</span>
+            <span class="nt">&lt;dict&gt;</span>
+            <span class="nt">&lt;key&gt;</span>CFBundleTypeRole<span class="nt">&lt;/key&gt;</span>
+                <span class="nt">&lt;string&gt;</span>Editor<span class="nt">&lt;/string&gt;</span>
+                 <span class="nt">&lt;key&gt;</span>CFBundleURLSchemes<span class="nt">&lt;/key&gt;</span>
+                 <span class="nt">&lt;array&gt;</span>
+                   <span class="c">&lt;!---需要替换成对应参数--&gt;</span>
+                   <span class="nt">&lt;string&gt;</span>fb658714061225851<span class="nt">&lt;/string&gt;</span>
+                 <span class="nt">&lt;/array&gt;</span>
+                 <span class="nt">&lt;/dict&gt;</span>
+         <span class="nt">&lt;/array&gt;</span>
+
+         <span class="nt">&lt;key&gt;</span>FacebookAppID<span class="nt">&lt;/key&gt;</span>
+           <span class="c">&lt;!---需要替换成对应参数--&gt;</span>
+         <span class="nt">&lt;string&gt;</span>658714061225851<span class="nt">&lt;/string&gt;</span>
+         <span class="nt">&lt;key&gt;</span>FacebookDisplayName<span class="nt">&lt;/key&gt;</span>
+           <span class="c">&lt;!---需要替换成对应参数--&gt;</span>
+         <span class="nt">&lt;string&gt;</span>动物战争<span class="nt">&lt;/string&gt;</span>
+           <span class="c">&lt;!---白名单--&gt;</span>
+         <span class="nt">&lt;key&gt;</span>LSApplicationQueriesSchemes<span class="nt">&lt;/key&gt;</span>
+           <span class="nt">&lt;array&gt;</span>
+              <span class="nt">&lt;string&gt;</span>fbapi<span class="nt">&lt;/string&gt;</span>
+              <span class="nt">&lt;string&gt;</span>fb-messenger-api<span class="nt">&lt;/string&gt;</span>
+              <span class="nt">&lt;string&gt;</span>fbauth2<span class="nt">&lt;/string&gt;</span>
+              <span class="nt">&lt;string&gt;</span>fbshareextension<span class="nt">&lt;/string&gt;</span>
+              <span class="nt">&lt;string&gt;</span>lineauth2<span class="nt">&lt;/string&gt;</span>
+           <span class="nt">&lt;/array&gt;</span>
+           <span class="nt">&lt;key&gt;</span>LineSDKConfig<span class="nt">&lt;/key&gt;</span>
+           <span class="nt">&lt;dict&gt;</span>
+           <span class="nt">&lt;key&gt;</span>ChannelID<span class="nt">&lt;/key&gt;</span>
+             <span class="c">&lt;!---需要替换成对应参数--&gt;</span>
+             <span class="nt">&lt;string&gt;</span>1564316537<span class="nt">&lt;/string&gt;</span>
+           <span class="nt">&lt;/dict&gt;</span> 
+      <span class="nt">&lt;key&gt;</span>GADIsAdManagerApp<span class="nt">&lt;/key&gt;</span>
+	    <span class="nt">&lt;true/&gt;</span>
+      <span class="nt">&lt;key&gt;</span>AppLovinSdkKey<span class="nt">&lt;/key&gt;</span>
+      <span class="c">&lt;!---需要替换成对应参数--&gt;</span>
+	   <span class="nt">&lt;string&gt;</span>OixDcmXAyNNGd4zM3r-h0fsGvPzKc8k0sfETQmdM80dn4b77R6qSmfif4f-hpiheMw7ogl9plnZqNhyqomGTQz<span class="nt">&lt;/string&gt;</span>
+</code></pre></div></div>
+
+<p><strong>6、设置Build Options</strong></p>
+
+<ul>
+  <li>
+    <p>自v1.2.17版本起，SDK中包含swift部分，因此需要在项目中设置Build Options</p>
+
+    <p><strong>在项目的Build Settings中找到Always Embed Swift Standard Libraries 设置成Yes</strong></p>
+  </li>
+</ul>
+
+<h1 id="初始化">初始化</h1>
+
+<ul>
+  <li>简介：执行全局设置，用于应用启动后，初始化SDK。（必接接口）</li>
+</ul>
+
+<h2 id="引入头文件">引入头文件</h2>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#import "loginSDK/wfnjiPlat.h"
+</span></code></pre></div></div>
+
+<h2 id="调用初始化">调用初始化</h2>
+
+<ul>
+  <li>必须在application:didFinishLaunchingWithOptions方法中调用</li>
+</ul>
+
+<p>方法1：</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">initSDK</span><span class="p">:(</span><span class="n">NSString</span><span class="o">*</span><span class="p">)</span><span class="nv">gameid</span>
+        <span class="nf">setPromote</span><span class="p">:(</span><span class="n">NSString</span><span class="o">*</span><span class="p">)</span><span class="nv">promote</span>
+       <span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span>
+      <span class="nf">didFinishLaunchingWithOptions</span><span class="p">:(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">launchOptions</span>
+   <span class="nf">appsFlyerDevKey</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">devKey</span>
+        <span class="nf">appleAppID</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">appID</span>
+       <span class="nf">GGkClientID</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">kClientID</span>
+           <span class="nf">Applede</span><span class="p">:(</span><span class="n">id</span><span class="p">)</span> <span class="n">app</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>参数类型</th>
+      <th>是否必需</th>
+      <th>示例</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>gameid</td>
+      <td>String</td>
+      <td>是</td>
+      <td>1662</td>
+      <td>平台ID</td>
+    </tr>
+    <tr>
+      <td>promote</td>
+      <td>String</td>
+      <td>是</td>
+      <td>17</td>
+      <td>渠道ID</td>
+    </tr>
+    <tr>
+      <td>application</td>
+      <td>UIApplication</td>
+      <td>是</td>
+      <td>application</td>
+      <td>默认参数</td>
+    </tr>
+    <tr>
+      <td>launchOptions</td>
+      <td>NSDictionary</td>
+      <td>是</td>
+      <td>launchOptions</td>
+      <td>默认参数</td>
+    </tr>
+    <tr>
+      <td>devKey</td>
+      <td>String</td>
+      <td>是</td>
+      <td>g7ZP9TqQ4S8AF9zeQD9Koe</td>
+      <td>Appsflyer参数</td>
+    </tr>
+    <tr>
+      <td>appID</td>
+      <td>String</td>
+      <td>是</td>
+      <td>1456212257</td>
+      <td>苹果提审分配ID</td>
+    </tr>
+    <tr>
+      <td>kClientID</td>
+      <td>String</td>
+      <td>是</td>
+      <td>1011363304473-sa8a2igsc2ap7a7hpguv2if6jtmf902i.apps.googleusercontent.com</td>
+      <td>google参数</td>
+    </tr>
+    <tr>
+      <td>app</td>
+      <td>AppDelegate</td>
+      <td>是</td>
+      <td>self</td>
+      <td>用于数据打点</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<blockquote>
+  <p>如果参数配置在给到的SDK的bundle中的infoset.plist，可以按照示例中的方法获取；如果不配置，直接在初始化接口中填入相应的值即可</p>
+</blockquote>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">-</span><span class="p">(</span><span class="n">BOOL</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="nf">didFinishLaunchingWithOptions</span><span class="p">:(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">launchOptions</span> 
+    <span class="p">[</span><span class="n">wfnjiPlat</span> 
+         <span class="nf">initSDK</span> <span class="p">:</span> <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">getInfoString</span><span class="p">:</span><span class="s">@"gameid"</span><span class="p">]</span> 
+         <span class="nf">setPromote</span> <span class="p">:</span> <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">getInfoString</span><span class="p">:</span><span class="s">@"Promote"</span><span class="p">]</span>
+         <span class="n">application</span> <span class="o">:</span> <span class="n">application</span>
+         <span class="n">didFinishLaunchingWithOptions</span> <span class="o">:</span> <span class="n">launchOptions</span>
+         <span class="n">appsFlyerDevKey</span> <span class="o">:</span> <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">getInfoString</span><span class="p">:</span><span class="s">@"appsFlyerDevKey"</span><span class="p">]</span>
+         <span class="n">appleAppID</span> <span class="o">:</span> <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">getInfoString</span><span class="p">:</span><span class="s">@"appleAppID"</span><span class="p">]</span>
+         <span class="n">GGkClientID</span> <span class="o">:</span> <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">getInfoString</span><span class="p">:</span><span class="s">@"GGkClientID"</span><span class="p">]</span>
+         <span class="n">Applede</span><span class="o">:</span><span class="n">self</span><span class="p">];</span>
+    <span class="k">return</span> <span class="nb">YES</span><span class="p">;</span>
+<span class="err">}</span>
+</code></pre></div></div>
+
+<p>方法2：</p>
+
+<blockquote>
+  <p>此方法默认读取bundle中的参数，如使用此初始化方法，请确认给到的SDK的bundle中的infoset.plist所有参数是否与提供的参数表一致。</p>
+</blockquote>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">initSDKapplication</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span>
+<span class="nf">didFinishLaunchingWithOptions</span><span class="p">:(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">launchOptions</span>
+                    <span class="nf">Applede</span><span class="p">:(</span><span class="n">id</span><span class="p">)</span> <span class="n">app</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>参数类型</th>
+      <th>是否必需</th>
+      <th>示例</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>application</td>
+      <td>UIApplication</td>
+      <td>是</td>
+      <td>application</td>
+      <td>默认参数</td>
+    </tr>
+    <tr>
+      <td>launchOptions</td>
+      <td>NSDictionary</td>
+      <td>是</td>
+      <td>launchOptions</td>
+      <td>默认参数</td>
+    </tr>
+    <tr>
+      <td>app</td>
+      <td>AppDelegate</td>
+      <td>是</td>
+      <td>self</td>
+      <td>用于数据打点</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">-</span><span class="p">(</span><span class="n">BOOL</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="nf">didFinishLaunchingWithOptions</span><span class="p">:(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">launchOptions</span> 
+   <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">initSDKapplication</span><span class="p">:</span><span class="n">application</span> <span class="nf">didFinishLaunchingWithOptions</span><span class="p">:</span><span class="n">launchOptions</span> <span class="n">Applede</span><span class="o">:</span><span class="n">self</span><span class="p">];</span>
+    <span class="k">return</span> <span class="nb">YES</span><span class="p">;</span>
+<span class="err">}</span>
+</code></pre></div></div>
+
+<h2 id="sdk资源">SDK资源</h2>
+
+<ul>
+  <li>此为与SDK一起提供的.bundle文件的配置</li>
+  <li>配置参数，可以直接按照运营提供的相关参数表，如有疑问，请联系相关运营人员</li>
+  <li>如对配置参数的key有任何疑问，请联系相关技术人员</li>
+  <li>详见下表，未出现在表中的参数key，则一般不需要修改，如有疑问，请联系相关技术人员</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>参数类型</th>
+      <th>描述</th>
+      <th>示例</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>gameid</td>
+      <td>String</td>
+      <td>游戏id</td>
+      <td>1634</td>
+    </tr>
+    <tr>
+      <td>channel</td>
+      <td>String</td>
+      <td>渠道名称，默认GM，一般不需要修改</td>
+      <td>GM</td>
+    </tr>
+    <tr>
+      <td>GGkClientID</td>
+      <td>String</td>
+      <td>google客户端id</td>
+      <td>726483388833-nejr29g354f0p3sieg18gmehkhljuerv.apps.googleusercontent.com</td>
+    </tr>
+    <tr>
+      <td>appsFlyerDevKey</td>
+      <td>String</td>
+      <td>appsflyer的key</td>
+      <td>g7ZP9TqQ4S8AF9zeQD9Koe</td>
+    </tr>
+    <tr>
+      <td>appleAppID</td>
+      <td>String</td>
+      <td>苹果应用id</td>
+      <td>1528141305</td>
+    </tr>
+    <tr>
+      <td>Promote</td>
+      <td>String</td>
+      <td>渠道id，默认17，代表iOS，无需修改</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <td>GoogleADID</td>
+      <td>String</td>
+      <td>admob广告id</td>
+      <td>ca-app-pub-7496069579613989~9003527017</td>
+    </tr>
+    <tr>
+      <td>IronsourceAppKey</td>
+      <td>String</td>
+      <td>ironsource的key</td>
+      <td>ce0a7e2d</td>
+    </tr>
+    <tr>
+      <td>issueVersion</td>
+      <td>String</td>
+      <td>发布版本</td>
+      <td>1634011</td>
+    </tr>
+    <tr>
+      <td>consumerSecret</td>
+      <td>String</td>
+      <td>twitter的Secret</td>
+      <td>lGoFe4yYVug52LcNiAptoABgb14k5seN9XMJq6L0ggSzUmIevP</td>
+    </tr>
+    <tr>
+      <td>ConsumerKey</td>
+      <td>String</td>
+      <td>twitter的key（如果无需twitter相关功能，这两个参数可以不修改）</td>
+      <td>SALb45SZfATPS8ILSYAvnB4ic</td>
+    </tr>
+    <tr>
+      <td>version</td>
+      <td>String</td>
+      <td>相对应配置版本</td>
+      <td>3.0</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>注：1、issueVersion—发布版本：iOS SDK 1.3版本及其以上版本才有，必须设值，每次出包均需像运营相关人员确认其值；2、version：iOS SDK 1.3版本及其以上版本可以直接设置成1.0；其余版本此值请于相关技术人员确认</strong></p>
+
+<h2 id="定义代理">定义代理</h2>
+
+<p>SDK使用统一的代理方法来获得各接口的响应，涉及的接口包括：</p>
+
+<ul>
+  <li>登陆</li>
+  <li>登出</li>
+  <li>支付</li>
+</ul>
+
+<blockquote>
+  <p>注意：登录（包含登出，切换账号等）和支付的代理方法均为“onFinish:Data:”，回调的code不同</p>
+</blockquote>
+
+<p><strong>定义</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">onFinish</span><span class="p">:(</span><span class="n">wfnjiStatus</span><span class="p">)</span><span class="nv">code</span>   <span class="nf">Data</span><span class="p">:(</span><span class="n">NSDictionary</span><span class="o">*</span><span class="p">)</span><span class="nv">Data</span>
+<span class="p">{</span>
+    <span class="n">NSLog</span><span class="p">(</span><span class="s">@"回调状态值：%ld"</span><span class="p">,(</span><span class="kt">long</span><span class="p">)</span><span class="n">code</span><span class="p">);</span>
+    <span class="n">NSLog</span><span class="p">(</span><span class="s">@"回调：%@"</span><span class="p">,</span><span class="n">Data</span><span class="p">);</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">code</span><span class="o">==</span><span class="n">LOGIN_SUCCESS</span><span class="p">){</span>
+      <span class="c1">//登陆成功 do something</span>
+    <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">code</span><span class="o">==</span> <span class="n">LOGOUT_SUCCESS</span><span class="p">){</span>
+      <span class="c1">//登出 do something</span>
+    <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">code</span><span class="o">==</span> <span class="n">LOGIN_SWITCH</span><span class="p">){</span>
+      <span class="c1">//切换账号 do something</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">code</span> <span class="o">==</span><span class="n">PAY_SUCCESS</span><span class="p">){</span>
+      <span class="c1">//支付成功 do something</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">code</span><span class="o">==</span> <span class="n">PAY_FAILED</span><span class="p">){</span>
+      <span class="c1">//支付失败 do something</span>
+    <span class="p">}</span><span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">code</span><span class="o">==</span><span class="n">PAY_CANCEL</span><span class="p">){</span>
+      <span class="c1">//支付取消 do something</span>
+    <span class="p">}</span><span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">code</span><span class="o">==</span><span class="n">PAY_UNKNOWN</span><span class="p">){</span>
+      <span class="c1">//支付未知 do something </span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">LOGIN_UNUSE</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">//账号被封 do something</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="定义通知">定义通知</h2>
+
+<p>SDK使用通知来接收部分接口的结果，涉及的接口包括：</p>
+
+<ul>
+  <li>帐号绑定</li>
+  <li>分享</li>
+  <li>变现广告</li>
+</ul>
+
+<p><strong>定义</strong></p>
+
+<pre><code class="language-obj">@"SDKCenterNotifition"
+</code></pre>
+
+<p><strong>状态值</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>广告失败</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>广告成功</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>分享失败</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>分享成功</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>绑定失败</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>绑定成功</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>未绑定</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>已绑定</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>绑定取消</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>取消广告</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>返回product多语言</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>返回product多语言失败</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td>返回翻译</td>
+    </tr>
+    <tr>
+      <td>13</td>
+      <td>VIP专属客服不可显示</td>
+    </tr>
+    <tr>
+      <td>14</td>
+      <td>VIP专属客服可显示</td>
+    </tr>
+    <tr>
+      <td>15</td>
+      <td>VIP专属客服关闭</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//在viewDidLoad中添加通知</span>
+<span class="p">[[</span><span class="n">NSNotificationCenter</span> <span class="nf">defaultCenter</span><span class="p">]</span> <span class="nf">addObserver</span><span class="p">:</span><span class="n">self</span> <span class="nf">selector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">notifitionCenter</span><span class="o">:</span><span class="p">)</span>  <span class="n">name</span><span class="o">:</span><span class="s">@"SDKCenterNotifition"</span> <span class="n">object</span><span class="o">:</span><span class="nb">nil</span><span class="p">];</span>
+
+<span class="o">-----------------------</span><span class="err">通知回调方法</span><span class="o">---------------------------</span>
+<span class="c1">//自定义方法</span>
+<span class="cp">#pragma mark - 通知回调事件
+</span>
+<span class="cm">/**
+  * 返回参数：status  游戏可以根据状态来获知各功能的回调，具体表示如上述表格              
+   */</span>
+<span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">notifitionCenter</span> <span class="p">:(</span><span class="n">NSNotification</span> <span class="o">*</span><span class="p">)</span><span class="nv">notification</span><span class="p">{</span>
+    <span class="n">NSDictionary</span> <span class="o">*</span> <span class="n">Info</span> <span class="o">=</span> <span class="p">(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="n">notification</span><span class="p">.</span><span class="n">object</span><span class="p">;</span>
+    <span class="n">NSLog</span><span class="p">(</span><span class="s">@"info==%@"</span><span class="p">,</span><span class="n">Info</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"0"</span><span class="p">]){</span>
+        <span class="c1">//广告失败 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"1"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//广告成功 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"2"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//分享失败 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"3"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//分享成功 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"4"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//绑定失败 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"5"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//绑定成功 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"6"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//未绑定 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"7"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//已绑定 do something</span>
+    <span class="p">}</span><span class="k">else</span>  <span class="k">if</span><span class="p">([[</span><span class="n">Info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"status"</span><span class="p">]</span> <span class="nf">isEqualToString</span><span class="p">:</span><span class="s">@"8"</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//绑定取消 do something</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">---------------------------</span><span class="err">移除通知</span><span class="o">--------------------------</span>
+<span class="c1">//请最后在dealloc方法中移除通知哦</span>
+<span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">dealloc</span>
+<span class="p">{</span>
+    <span class="p">[[</span><span class="n">NSNotificationCenter</span> <span class="nf">defaultCenter</span><span class="p">]</span> <span class="nf">removeObserver</span><span class="p">:</span><span class="n">self</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="登录登出">登录登出</h1>
+
+<p>简介：此接口用于登录，登录方式有：平台账号密码登录，游客登录，Facebook登录，Line登录。
+注：1.2.12及其之后版本因加入了Sign in with apple，需要在项目target-&gt;signing&amp;Capabilities-&gt;”+”-&gt;Sign In with Apple。</p>
+
+<h2 id="登录必接">登录（必接）</h2>
+
+<p><strong>接口</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">login</span><span class="p">:(</span><span class="n">id</span><span class="o">&lt;</span><span class="n">wfnjiLoginCallBack</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">mLoginCallBack</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">login</span><span class="p">:</span><span class="n">self</span><span class="p">];</span>
+</code></pre></div></div>
+
+<p><strong>回调</strong></p>
+
+<p>登陆接口使用代理来接收回调，请参考<a href="#定义代理">代理</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态码</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>LOGIN_SUCCESS</td>
+      <td>登陆成功</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="登出">登出</h2>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">logOut</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">logOut</span><span class="p">];</span>
+</code></pre></div></div>
+
+<p><strong>回调</strong></p>
+
+<p>使用代理来接收回调，请参考<a href="#定义代理">代理</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态码</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>LOGOUT_SUCCESS</td>
+      <td>登出</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="重新登陆切换帐号">重新登陆(切换帐号)</h2>
+
+<p>此接口用于游戏中用户可以切换账号的入口，使得用户可以在游戏中切换登录的账号。</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">WithInApplicationSwitch</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">WithInApplicationSwitch</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>回调</strong></p>
+
+<p>使用代理来接收回调，请参考<a href="#定义代理">代理</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态码</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>LOGIN_SWITCH</td>
+      <td>切换帐号</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="支付">支付</h1>
+
+<h2 id="发起支付必接">发起支付（必接）</h2>
+
+<p>此接口用于苹果支付，需要传递相关信息进行支付操作。</p>
+
+<p><strong>定义</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">wfnjipay</span><span class="p">:(</span><span class="n">wfnjiOrderModel</span> <span class="o">*</span><span class="p">)</span><span class="nv">payInfo</span> <span class="nf">CallBack</span><span class="p">:(</span><span class="n">id</span><span class="o">&lt;</span><span class="n">wfnjiPayCallBack</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">callBack</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>类型</th>
+      <th>是否必需</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>productID</td>
+      <td>string</td>
+      <td>是</td>
+      <td>商品ID</td>
+    </tr>
+    <tr>
+      <td>productName</td>
+      <td>string</td>
+      <td>是</td>
+      <td>商品名称</td>
+    </tr>
+    <tr>
+      <td>productPrice</td>
+      <td>string</td>
+      <td>是</td>
+      <td>商品价格</td>
+    </tr>
+    <tr>
+      <td>productDes</td>
+      <td>string</td>
+      <td>是</td>
+      <td>商品描述（没有可传递商品名称）</td>
+    </tr>
+    <tr>
+      <td>gameReceipts</td>
+      <td>string</td>
+      <td>是</td>
+      <td>游戏传入的有关用户的区id，服务器id，角色id,订单等，属于透传数据功能</td>
+    </tr>
+    <tr>
+      <td>roleID</td>
+      <td>string</td>
+      <td>否</td>
+      <td>角色ID</td>
+    </tr>
+    <tr>
+      <td>roleName</td>
+      <td>string</td>
+      <td>否</td>
+      <td>角色名称</td>
+    </tr>
+    <tr>
+      <td>roleLevel</td>
+      <td>string</td>
+      <td>否</td>
+      <td>角色等级</td>
+    </tr>
+    <tr>
+      <td>vipLevel</td>
+      <td>string</td>
+      <td>否</td>
+      <td>vip等级</td>
+    </tr>
+    <tr>
+      <td>zoneID</td>
+      <td>string</td>
+      <td>是</td>
+      <td>服务器ID，若无，请填写“1”</td>
+    </tr>
+    <tr>
+      <td>zoneName</td>
+      <td>string</td>
+      <td>否</td>
+      <td>服务器名称</td>
+    </tr>
+    <tr>
+      <td>text</td>
+      <td>string</td>
+      <td>否</td>
+      <td>文本</td>
+    </tr>
+    <tr>
+      <td>notifyURL</td>
+      <td>string</td>
+      <td>否</td>
+      <td>回调地址，可传可不传，不传会使用后台配置的回调地址，请将地址提供给运营</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例代码</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wfnjiOrderModel</span><span class="o">*</span> <span class="n">mPayInfo</span> <span class="o">=</span> <span class="p">[[</span><span class="n">wfnjiOrderModel</span> <span class="nf">alloc</span><span class="p">]</span> <span class="nf">init</span><span class="p">];</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">productID</span><span class="o">=</span><span class="s">@"xxxxx"</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">productName</span><span class="o">=</span><span class="s">@"商品名称"</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">productPrice</span><span class="o">=</span><span class="s">@"6"</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">productDes</span><span class="o">=</span><span class="s">@"商品描述"</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">gameReceipts</span><span class="o">=</span><span class="n">receipts</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">roleID</span><span class="o">=</span><span class="s">@""</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">roleName</span><span class="o">=</span><span class="s">@""</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">roleLevel</span><span class="o">=</span><span class="s">@""</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">vipLevel</span><span class="o">=</span><span class="s">@""</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">partyName</span><span class="o">=</span><span class="s">@""</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">zoneID</span><span class="o">=</span><span class="s">@"服务器id"</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">zoneName</span><span class="o">=</span><span class="s">@""</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">text</span><span class="o">=</span><span class="s">@""</span><span class="p">;</span>
+<span class="n">mPayInfo</span><span class="p">.</span><span class="n">notifyURL</span> <span class="o">=</span> <span class="s">@"http://demo.wfnji88.com/ok.php?gameid=1156&amp;promote=2"</span><span class="p">;</span>
+<span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">wfnjipay</span><span class="p">:</span><span class="n">mPayInfo</span> <span class="nf">CallBack</span><span class="p">:</span><span class="n">self</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong>
+支付接口使用代理来接收回调，请参考<a href="#定义代理">代理</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态码</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PAY_SUCCESS</td>
+      <td>支付成功</td>
+    </tr>
+    <tr>
+      <td>PAY_FAILED</td>
+      <td>支付失败</td>
+    </tr>
+    <tr>
+      <td>PAY_CANCEL</td>
+      <td>取消支付</td>
+    </tr>
+    <tr>
+      <td>PAY_UNKNOWN</td>
+      <td>未知错误</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="查询商品币种">查询商品币种</h2>
+
+<p>调用此接口，可以返回相应的商品多语言列表。</p>
+
+<p><strong>接口</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">setPurchaseInfo</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>10</td>
+      <td>返回商品列表失败</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>返回商品列表成功，@“product”中的值为商品多语言列表内容</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="角色">角色</h1>
+
+<h2 id="角色信息变更必接">角色信息变更（必接）</h2>
+
+<ul>
+  <li>上传和角色相关的打点，状态值：1、创建角色，2、完成新手引导，3、等级升级</li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+  * 当前游戏的角色打点
+  * @param name     角色名字
+  * @param level    游戏等级
+  * @param serverID 区服ID
+  * @param roleid   角色ID
+  * @param status   1:创建角色 2:完成新手引导 3:等级升级  状态值默认选择&lt;3&gt;
+  * @param vipLevel 游戏VIP等级
+  */</span>
+<span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">wfnjiRoleName</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">name</span>
+            <span class="nf">gameLevel</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">level</span>
+             <span class="nf">serverID</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">serverID</span>
+               <span class="nf">roleID</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">roleid</span>
+               <span class="nf">status</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">status</span>
+	     <span class="nf">vipLevel</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">vipLevel</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>类型</th>
+      <th>必需</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>name</td>
+      <td>string</td>
+      <td>是</td>
+      <td>角色名</td>
+    </tr>
+    <tr>
+      <td>level</td>
+      <td>string</td>
+      <td>是</td>
+      <td>等级</td>
+    </tr>
+    <tr>
+      <td>severID</td>
+      <td>string</td>
+      <td>是</td>
+      <td>区服ID</td>
+    </tr>
+    <tr>
+      <td>roleID</td>
+      <td>string</td>
+      <td>是</td>
+      <td>角色ID</td>
+    </tr>
+    <tr>
+      <td>status</td>
+      <td>string</td>
+      <td>是</td>
+      <td>1:创建角色 2:完成新手引导 3:等级升级</td>
+    </tr>
+    <tr>
+      <td>vipLevel</td>
+      <td>string</td>
+      <td>否</td>
+      <td>游戏内Vip等级，没有可以传空</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong>
+此处示例为角色升级</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">wfnjiRoleName</span><span class="p">:</span><span class="s">@"角色名字"</span> <span class="nf">gameLevel</span><span class="p">:</span><span class="s">@"角色等级"</span> <span class="n">serverID</span><span class="o">:</span><span class="s">@"区服ID"</span> <span class="n">roleID</span><span class="o">:</span><span class="s">@"角色ID"</span> <span class="n">status</span><span class="o">:</span><span class="s">@"3"</span> <span class="n">vipLevel</span><span class="o">:</span><span class="s">@""</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<h1 id="分享">分享</h1>
+
+<h2 id="发起分享">发起分享</h2>
+
+<ul>
+  <li>此接口用于接入分享</li>
+  <li>分享的结果在通知中，通知名称为@”SDKCenterNotifition”，详见<strong>SDK通知</strong></li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ 分享使用的方法
+ 
+ @param sharename 分享名
+ @param shareID 分享ID
+ @param share_uname 角色名
+ @param share_server 角色区服
+ @param share_code 角色code
+
+ */</span>
+<span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">ShareInfoName</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">sharename</span>
+                  <span class="nf">ShareInfoID</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">shareID</span>
+                   <span class="nf">shareUname</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">share_uname</span>
+                  <span class="nf">shareServer</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">share_server</span>
+                   <span class="nf">shareCode</span> <span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">share_code</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<blockquote>
+  <p>相关参数如有不清楚，请与相关人员联系</p>
+</blockquote>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">ShareInfoName</span><span class="p">:</span><span class="s">@"分享"</span> <span class="nf">ShareInfoID</span><span class="p">:</span><span class="s">@"1"</span> <span class="n">shareUname</span><span class="o">:</span><span class="s">@"w"</span> <span class="n">shareServer</span><span class="o">:</span><span class="s">@"w"</span> <span class="n">shareCode</span><span class="o">:</span><span class="s">@"w"</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2</td>
+      <td>分享失败</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>分享成功</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="变现广告">变现广告</h1>
+
+<h2 id="拉起激励视频接口">拉起激励视频接口</h2>
+
+<p>此接口是用于接入广告的，目前只用于激励视频。</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">choseADPlatForm</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">choseADPlatForm</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>广告失败</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>广告成功</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>取消广告</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="设置广告次数接口">设置广告次数接口</h2>
+
+<p>此接口用于设置广告剩余次数，用于减少广告预加载。不设置，默认加载。</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">ADCounts</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">str</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">ADCounts</span><span class="p">:</span><span class="s">@"3"</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<h2 id="拉起广告接口">拉起广告接口</h2>
+
+<p>此接口适用于接入广告的。</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">choseADPlatForm</span><span class="p">:(</span><span class="n">NSInteger</span><span class="p">)</span><span class="nv">type</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<p>传入的type值，及其含义如下表所示：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>激励视频</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>插页广告</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>横幅广告</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">choseADPlatForm</span><span class="p">:</span><span class="mi">0</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>广告失败</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>广告成功</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>取消广告</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>##</p>
+
+<h1 id="帐号绑定">帐号绑定</h1>
+
+<h2 id="拉起帐号绑定页面">拉起帐号绑定页面</h2>
+
+<ul>
+  <li>
+    <p>此接口用于显示绑定页面，游客可以绑定GM88账号</p>
+  </li>
+  <li>
+    <p>绑定结果在通知中，通知名称为@”SDKCenterNotifition”，详见<strong>SDK通知</strong></p>
+
+    <h5 id="接口">接口</h5>
+  </li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">userInfoBindView</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">userInfoBindView</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong>
+使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>4</td>
+      <td>绑定失败</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>绑定成功</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>未绑定</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>已绑定</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>绑定取消</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="查询帐号绑定状态">查询帐号绑定状态</h2>
+
+<ul>
+  <li>
+    <p>此接口用于查询账号是否已绑定，（绑定邮箱，三方之类，只要绑定任何一项即返回绑定状态）</p>
+
+    <div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">isCanBind</span><span class="p">;</span>
+  
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">isCanBind</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong>
+使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>6</td>
+      <td>未绑定</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>已绑定</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="vip专属客服">VIP专属客服</h1>
+
+<h2 id="查询是否可显示vip客服">查询是否可显示VIP客服</h2>
+
+<ul>
+  <li>此接口用于查询是否可显示VIP专属客服（只有符合相关条件的vip，才会返回可以显示）</li>
+  <li>结果在通知中，通知名称为@”SDKCenterNotifition”，详见<strong>SDK通知</strong></li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">isCanVip</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">isCanVip</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>13</td>
+      <td>VIP专属客服不可显示</td>
+    </tr>
+    <tr>
+      <td>14</td>
+      <td>VIP专属客服可显示</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="vip专属客服-1">VIP专属客服</h2>
+
+<ul>
+  <li>此接口用于显示VIP专属客服</li>
+  <li>结果在通知中，通知名称为@”SDKCenterNotifition”，详见**SDK通知</li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">VIPCustomService</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">VIPCustomService</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>状态值</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>13</td>
+      <td>VIP专属客服不可显示</td>
+    </tr>
+    <tr>
+      <td>14</td>
+      <td>VIP专属客服可显示</td>
+    </tr>
+    <tr>
+      <td>15</td>
+      <td>VIP专属客服关闭</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="数据打点">数据打点</h1>
+
+<h2 id="游戏内行为打点">游戏内行为打点</h2>
+
+<ul>
+  <li>除特定打点外，所有自定义打点的事件都通过此接口传递。</li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">LogInfo</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">eventName</span> <span class="nf">EventDic</span><span class="p">:(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">info</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>类型</th>
+      <th>描述</th>
+      <th>示例</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>eventName</td>
+      <td>NSString</td>
+      <td>事件名称</td>
+      <td>@”enter game”</td>
+    </tr>
+    <tr>
+      <td>info</td>
+      <td>NSDictionary</td>
+      <td>事件其他参数，用于细分数据(如无可传空)</td>
+      <td>@{@”userId”:@”1”}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//如无其他额外信息，EventDic请传nil(空)</span>
+<span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">LogInfo</span><span class="p">:</span><span class="s">@"achieve xxx"</span>  <span class="nf">EventDic</span><span class="p">:</span><span class="nb">nil</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong>
+使用通知来接收回调，请参考<a href="#定义通知">通知</a></p>
+
+<ul>
+  <li>简介：用于通知贵方登录和支付的状态</li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">typedef</span> <span class="nf">NS_ENUM</span><span class="p">(</span><span class="n">NSInteger</span><span class="p">,</span> <span class="n">wfnjiStatus</span><span class="p">){</span>
+      <span class="cm">/** 登陆成功 */</span>
+      <span class="n">LOGIN_SUCCESS</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="cm">/** 切换账号*/</span>
+      <span class="n">LOGIN_SWITCH</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+      <span class="cm">/** 退出成功*/</span>
+      <span class="n">LOGOUT_SUCCESS</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+      <span class="cm">/** 账号被封*/</span>
+      <span class="n">LOGIN_UNUSE</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+
+      <span class="cm">/** 支付成功 */</span>
+      <span class="n">PAY_SUCCESS</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+      <span class="cm">/** 支付失败*/</span>
+      <span class="n">PAY_FAILED</span> <span class="o">=</span> <span class="mi">11</span><span class="p">,</span>
+      <span class="cm">/** 支付取消 */</span>
+      <span class="n">PAY_CANCEL</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
+      <span class="cm">/** 未知支付状态*/</span>
+      <span class="n">PAY_UNKNOWN</span> <span class="o">=</span> <span class="mi">13</span>
+  <span class="p">};</span>
+
+</code></pre></div></div>
+
+<h1 id="推送">推送</h1>
+
+<p>推送是服务端用特定的条件（比如：给特定用户）发送消息，可以在用户关闭应用或者在开启时收到特定的消息（比如：最新活动等）。用户点击即可打开相关内容页。</p>
+
+<h2 id="推送工程设置">推送工程设置</h2>
+
+<p>接入推送，需要在工程中开启推送的开关，请参考<a href="#工程设置">工程设置</a></p>
+
+<h2 id="发送推送接口">发送推送接口</h2>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 推送相关，注册设备信息</span>
+<span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span>
+<span class="nf">didRegisterForRemoteNotificationsWithDeviceToken</span><span class="p">:(</span><span class="n">NSData</span> <span class="o">*</span><span class="p">)</span><span class="nv">deviceToken</span> <span class="p">;</span>
+<span class="c1">// 推送相关，接收推送信息</span>
+<span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="nf">didReceiveRemoteNotification</span><span class="p">:(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">userInfo</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<ul>
+  <li>原生项目的AppDelegate（或者是引擎生成类似方法）如下方法中调用SDK的推送相关的接口</li>
+</ul>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//注册远程通知的设备token</span>
+<span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="nf">didRegisterForRemoteNotificationsWithDeviceToken</span><span class="p">:(</span><span class="n">NSData</span> <span class="o">*</span><span class="p">)</span><span class="nv">deviceToken</span> <span class="p">{</span>
+    <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">application</span><span class="p">:</span><span class="n">application</span> <span class="nf">didRegisterForRemoteNotificationsWithDeviceToken</span><span class="p">:</span><span class="n">deviceToken</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="c1">//获取远程通知</span>
+<span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="nf">didReceiveRemoteNotification</span><span class="p">:(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">userInfo</span> <span class="p">{</span>
+    <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">application</span><span class="p">:</span><span class="n">application</span> <span class="nf">didReceiveRemoteNotification</span><span class="p">:</span><span class="n">userInfo</span><span class="p">];</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h1 id="其他接口必接">其他接口（必接）</h1>
+
+<ul>
+  <li>所有接口都必须接入，每个接口具体含义，请看示例代码</li>
+</ul>
+
+<h2 id="示例代码">示例代码</h2>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//这些方法需在AppDelegate（引擎生成相对应的类）中实现，这些方法必须接入，不接入会影响数据打点，推送以及Facebook等相关功能</span>
+<span class="c1">//记录应用进入后台</span>
+<span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">applicationDidEnterBackground</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="p">{</span>
+     <span class="c1">//此接口用于应用进入后台，功能结合打点，推送等</span>
+     <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">applicationDidBecomeActive</span><span class="p">:</span><span class="n">application</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="c1">//记录应用即将进入前台</span>
+<span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">applicationWillEnterForeground</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="p">{</span>
+     <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">applicationWillEnterForeground</span><span class="p">:</span><span class="n">application</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="c1">//应用被激活</span>
+<span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">applicationDidBecomeActive</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="p">{</span>      
+     <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">applicationDidBecomeActive</span><span class="p">:</span><span class="n">application</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="c1">//用于记录用户行为</span>
+<span class="k">-</span><span class="p">(</span><span class="n">BOOL</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="nf">continueUserActivity</span><span class="p">:(</span><span class="n">NSUserActivity</span> <span class="o">*</span><span class="p">)</span><span class="nv">userActivity</span> <span class="nf">restorationHandler</span><span class="p">:(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="n">NSArray</span> <span class="o">*</span><span class="n">_Nullable</span><span class="p">))</span><span class="nv">restorationHandler</span> <span class="p">{</span>   
+    <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">application</span><span class="p">:</span><span class="n">application</span> <span class="nf">continueUserActivity</span><span class="p">:</span><span class="n">userActivity</span><span class="p">];</span>
+    <span class="k">return</span> <span class="nb">NO</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//跳转链接两接口均需接入</span>
+<span class="c1">//跳转链接，此接口用于比如Facebook登录时的跳转iOS9之后的方法</span>
+<span class="k">-</span><span class="p">(</span><span class="n">BOOL</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">app</span> <span class="nf">openURL</span><span class="p">:(</span><span class="n">NSURL</span> <span class="o">*</span><span class="p">)</span><span class="nv">url</span> <span class="nf">options</span><span class="p">:(</span><span class="n">NSDictionary</span><span class="o">&lt;</span><span class="n">NSString</span> <span class="o">*</span><span class="p">,</span><span class="n">id</span><span class="o">&gt;</span> <span class="o">*</span><span class="p">)</span><span class="nv">options</span><span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">application</span><span class="p">:</span><span class="n">app</span> <span class="nf">openURL</span><span class="p">:</span><span class="n">url</span> <span class="n">options</span><span class="o">:</span><span class="n">options</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="c1">//跳转链接，此接口用于比如Facebook登录时的跳转iOS9之前的方法</span>
+<span class="k">-</span><span class="p">(</span><span class="n">BOOL</span><span class="p">)</span><span class="nf">application</span><span class="p">:(</span><span class="n">UIApplication</span> <span class="o">*</span><span class="p">)</span><span class="nv">application</span> <span class="nf">openURL</span><span class="p">:(</span><span class="n">NSURL</span> <span class="o">*</span><span class="p">)</span><span class="nv">url</span> <span class="nf">sourceApplication</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">sourceApplication</span> <span class="nf">annotation</span><span class="p">:(</span><span class="n">id</span><span class="p">)</span><span class="nv">annotation</span><span class="p">{</span>
+    <span class="k">return</span>  <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">application</span><span class="p">:</span><span class="n">application</span> <span class="nf">openURL</span><span class="p">:</span><span class="n">url</span> <span class="n">sourceApplication</span><span class="o">:</span><span class="n">sourceApplication</span> <span class="n">annotation</span><span class="o">:</span><span class="n">annotation</span><span class="p">];</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h1 id="工具型接口">工具型接口</h1>
+
+<h2 id="获取当前手机系统语言和地区">获取当前手机系统语言和地区</h2>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">returnLanguageCode</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>返回示例: “zh-CN”。</p>
+
+<p>其中，前半部分表示语言，zh代表中文，后半部分代码地区，CN代表中国。如果只要按语言判断，请只判断前半部分，如果只需按地区判断，请只判断后半部分。因为一种语言会在多个地区出现，一个地区也会有多种语言。</p>
+
+<p>语言码的ISO标准： <a href="https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO 639-1</a></p>
+
+<p>地区码的ISO标准：<a href="https://en.wikipedia.org/wiki/ISO_3166-2">ISO 3166-2</a></p>
+
+<blockquote>
+  <p>注意，由于Apple并没有完全按ISO标准返回，各厂商系统给出的语言地区码也不完全按ISO标准返回，建议做后端判断，方便兼容
+常见的不兼容是，中文简体使用的语言码是zh-Hans</p>
+</blockquote>
+
+<h2 id="获取sdk版本">获取SDK版本</h2>
+
+<ul>
+  <li>此接口用来获取当前SDK的版本，请按需接入</li>
+</ul>
+
+<pre><code class="language-objective-c">+(NSString*)versions;
+
+</code></pre>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//返回版本号，是string类型</span>
+<span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">versions</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<h2 id="打开社交平台">打开社交平台</h2>
+
+<div class="language-objectivec highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">方式一：</span>
+<span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">toastplatformCode</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">code</span> <span class="nf">Info</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">info</span>  <span class="nf">pageID</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">pageid</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>code</td>
+      <td>string</td>
+      <td>code : 2 Facebook 3 洛比 4 应用商店</td>
+    </tr>
+    <tr>
+      <td>info</td>
+      <td>string</td>
+      <td>链接地址/包名/应用ID (无参数默认给个空字符)</td>
+    </tr>
+    <tr>
+      <td>pageid</td>
+      <td>sring</td>
+      <td>粉丝页ID(无参数默认给个空字符)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objectivec highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">toastplatformCode</span><span class="p">:</span><span class="s">@"2"</span> <span class="nf">Info</span><span class="p">:</span><span class="s">@"https://123"</span> <span class="n">pageID</span><span class="o">:</span><span class="p">[</span><span class="n">info</span> <span class="nf">objectForKey</span><span class="p">:</span><span class="s">@"12345678"</span><span class="p">]]</span>
+
+</code></pre></div></div>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">方式二：</span>
+<span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">showMarkViewType</span><span class="p">:(</span><span class="n">NSInteger</span><span class="p">)</span><span class="nv">type</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>type</td>
+      <td>int</td>
+      <td>1：应用商店；2：三方平台</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[wfnjiPlat showMarkViewType:2];
+
+</code></pre></div></div>
+
+<h2 id="获得手机所在的时区">获得手机所在的时区</h2>
+
+<p>当游戏需要获取当前用户手机时间所在时区时，调用此方法</p>
+
+<div class="language-objectivec highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">returnTimeZome</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objectivec highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">returnTimeZome</span> <span class="p">];</span>
+
+</code></pre></div></div>
+
+<h2 id="翻译文本">翻译文本</h2>
+
+<p>当需要翻译文字时，请调用此方法</p>
+
+<p>第一个参数text是传入需要的翻译的文本，identifier是cp传来的透传字段。</p>
+
+<div class="language-objectivec highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">translateText</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">text</span> <span class="nf">identifier</span><span class="p">:(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">identifier</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数</th>
+      <th>类型</th>
+      <th>必须</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>text</td>
+      <td>string</td>
+      <td>是</td>
+      <td>需要翻译文本</td>
+    </tr>
+    <tr>
+      <td>identifier</td>
+      <td>string</td>
+      <td>否</td>
+      <td>文本标识符</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objectivec highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">translateText</span><span class="p">:</span><span class="s">@"你好"</span> <span class="nf">identifier</span><span class="p">:</span><span class="s">@"2"</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>结果回调在通知中，会包含状态值，翻译后的文本，文本标识符。</p>
+
+<h2 id="日志">日志</h2>
+
+<p>当接入需要开启日志时，请调用此方法</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">openLog</span><span class="p">:(</span><span class="n">BOOL</span><span class="p">)</span><span class="nv">isOn</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<p><strong>参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数</th>
+      <th>类型</th>
+      <th>必须</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>isOn</td>
+      <td>BOOL</td>
+      <td>是</td>
+      <td>是否开启日志</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>示例</strong></p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">wfnjiPlat</span> <span class="nf">openLog</span><span class="p">:</span><span class="nb">YES</span><span class="p">];</span>
+
+</code></pre></div></div>
+
+<p><strong>响应</strong></p>
+
+<p>开启日志，运行时，控制台输出日志；关闭日志，运行时，控制台不输出日志。</p>
+
+</div><div class="d-print-none"><footer class="article__footer"><!-- start custom article footer snippet -->
+
+<!-- end custom article footer snippet -->
+<div class="article__license"></div></footer>
+<div class="article__section-navigator clearfix"><div class="previous"><span>PREVIOUS</span><a href="/Ios/Domestic/docs/DOCUMENT.html">IOS国内</a></div><div class="next"><span>NEXT</span><a href="/Ios/Global-StandAlone/docs/DOCUMENT.html">IOS海外单机</a></div></div></div>
+
+</div>
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    $(function() {
+      var $this ,$scroll;
+      var $articleContent = $('.js-article-content');
+      var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+      var scroll = hasSidebar ? '.js-page-main' : 'html, body';
+      $scroll = $(scroll);
+
+      $articleContent.find('.highlight').each(function() {
+        $this = $(this);
+        $this.attr('data-lang', $this.find('code').attr('data-lang'));
+      });
+      $articleContent.find('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').each(function() {
+        $this = $(this);
+        $this.append($('<a class="anchor d-print-none" aria-hidden="true"></a>').html('<i class="fas fa-anchor"></i>'));
+      });
+      $articleContent.on('click', '.anchor', function() {
+        $scroll.scrollToAnchor('#' + $(this).parent().attr('id'), 400);
+      });
+    });
+  });
+})();
+</script>
+</div><section class="page__comments d-print-none"></section></article><!-- start custom main bottom snippet -->
+
+<!-- end custom main bottom snippet -->
+</div>
+            </div></div></div><div class="page__footer d-print-none">
+<footer class="footer py-4 js-page-footer">
+  <div class="main"><div itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="怪猫TP"><meta itemprop="url" content="/"><div class="footer__author-links"><div class="author-links">
+  <ul class="menu menu--nowrap menu--inline"></ul>
+</div>
+</div>
+    </div><div class="site-info mt-2">
+      <div>© GM88 游戏 SDK 2020,
+        Powered by <a title="Jekyll is a simple, blog-aware, static site generator." href="http://jekyllrb.com/">Jekyll</a> & <a
+        title="TeXt is a super customizable Jekyll theme." href="https://github.com/kitian616/jekyll-TeXt-theme">TeXt Theme</a>.
+      </div>
+    </div>
+  </div>
+</footer>
+</div></div>
+    </div></div></div><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $body = $('body'), $window = $(window);
+    var $pageRoot = $('.js-page-root'), $pageMain = $('.js-page-main');
+    var activeCount = 0;
+    function modal(options) {
+      var $root = this, visible, onChange, hideWhenWindowScroll = false;
+      var scrollTop;
+      function setOptions(options) {
+        var _options = options || {};
+        visible = _options.initialVisible === undefined ? false : show;
+        onChange = _options.onChange;
+        hideWhenWindowScroll = _options.hideWhenWindowScroll;
+      }
+      function init() {
+        setState(visible);
+      }
+      function setState(isShow) {
+        if (isShow === visible) {
+          return;
+        }
+        visible = isShow;
+        if (visible) {
+          activeCount++;
+          scrollTop = $(window).scrollTop() || $pageMain.scrollTop();
+          $root.addClass('modal--show');
+          $pageMain.scrollTop(scrollTop);
+          activeCount === 1 && ($pageRoot.addClass('show-modal'), $body.addClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.on('scroll', hide);
+          $window.on('keyup', handleKeyup);
+        } else {
+          activeCount > 0 && activeCount--;
+          $root.removeClass('modal--show');
+          $window.scrollTop(scrollTop);
+          activeCount === 0 && ($pageRoot.removeClass('show-modal'), $body.removeClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.off('scroll', hide);
+          $window.off('keyup', handleKeyup);
+        }
+        onChange && onChange(visible);
+      }
+      function show() {
+        setState(true);
+      }
+      function hide() {
+        setState(false);
+      }
+      function handleKeyup(e) {
+        // Char Code: 27  ESC
+        if (e.which ===  27) {
+          hide();
+        }
+      }
+      setOptions(options);
+      init();
+      return {
+        show: show,
+        hide: hide,
+        $el: $root
+      };
+    }
+    $.fn.modal = modal;
+  });
+})();
+</script><div class="modal modal--overflow page__search-modal d-print-none js-page-search-modal"><script>
+(function () {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    // search panel
+    var search = (window.search || (window.search = {}));
+    var useDefaultSearchBox = window.useDefaultSearchBox === undefined ?
+      true : window.useDefaultSearchBox ;
+
+    var $searchModal = $('.js-page-search-modal');
+    var $searchToggle = $('.js-search-toggle');
+    var searchModal = $searchModal.modal({ onChange: handleModalChange, hideWhenWindowScroll: true });
+    var modalVisible = false;
+    search.searchModal = searchModal;
+
+    var $searchBox = null;
+    var $searchInput = null;
+    var $searchClear = null;
+
+    function getModalVisible() {
+      return modalVisible;
+    }
+    search.getModalVisible = getModalVisible;
+
+    function handleModalChange(visible) {
+      modalVisible = visible;
+      if (visible) {
+        search.onShow && search.onShow();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].focus();
+      } else {
+        search.onShow && search.onHide();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].blur();
+        setTimeout(function() {
+          useDefaultSearchBox && ($searchInput.val(''), $searchBox.removeClass('not-empty'));
+          search.clear && search.clear();
+          window.pageAsideAffix && window.pageAsideAffix.refresh();
+        }, 400);
+      }
+    }
+
+    $searchToggle.on('click', function() {
+      modalVisible ? searchModal.hide() : searchModal.show();
+    });
+    // Char Code: 83  S, 191 /
+    $(window).on('keyup', function(e) {
+      if (!modalVisible && !window.isFormElement(e.target || e.srcElement) && (e.which === 83 || e.which === 191)) {
+        modalVisible || searchModal.show();
+      }
+    });
+
+    if (useDefaultSearchBox) {
+      $searchBox = $('.js-search-box');
+      $searchInput = $searchBox.children('input');
+      $searchClear = $searchBox.children('.js-icon-clear');
+      search.getSearchInput = function() {
+        return $searchInput.get(0);
+      };
+      search.getVal = function() {
+        return $searchInput.val();
+      };
+      search.setVal = function(val) {
+        $searchInput.val(val);
+      };
+
+      $searchInput.on('focus', function() {
+        $(this).addClass('focus');
+      });
+      $searchInput.on('blur', function() {
+        $(this).removeClass('focus');
+      });
+      $searchInput.on('input', window.throttle(function() {
+        var val = $(this).val();
+        if (val === '' || typeof val !== 'string') {
+          search.clear && search.clear();
+        } else {
+          $searchBox.addClass('not-empty');
+          search.onInputNotEmpty && search.onInputNotEmpty(val);
+        }
+      }, 400));
+      $searchClear.on('click', function() {
+        $searchInput.val(''); $searchBox.removeClass('not-empty');
+        search.clear && search.clear();
+      });
+    }
+  });
+})();
+</script><div class="search search--dark">
+  <div class="main">
+    <div class="search__header">Search</div>
+    <div class="search-bar">
+      <div class="search-box js-search-box">
+        <div class="search-box__icon-search"><i class="fas fa-search"></i></div>
+        <input type="text" />
+        <div class="search-box__icon-clear js-icon-clear">
+          <a><i class="fas fa-times"></i></a>
+        </div>
+      </div>
+      <button class="button button--theme-dark button--pill search__cancel js-search-toggle">
+        Cancel</button>
+    </div>
+    <div class="search-result js-search-result"></div>
+  </div>
+</div>
+<script>var SOURCES = window.TEXT_VARIABLES.sources;
+var PAHTS = window.TEXT_VARIABLES.paths;
+window.Lazyload.js([SOURCES.jquery, PAHTS.search_js], function() {
+  var search = (window.search || (window.search = {}));
+  var searchData = window.TEXT_SEARCH_DATA || {};
+
+  function memorize(f) {
+    var cache = {};
+    return function () {
+      var key = Array.prototype.join.call(arguments, ',');
+      if (key in cache) return cache[key];
+      else return cache[key] = f.apply(this, arguments);
+    };
+  }
+
+  /// search
+  function searchByQuery(query) {
+    var i, j, key, keys, cur, _title, result = {};
+    keys = Object.keys(searchData);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      for (j = 0; j < searchData[key].length; j++) {
+        cur = searchData[key][j], _title = cur.title;
+        if ((result[key] === undefined || result[key] && result[key].length < 4 )
+          && _title.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+          if (result[key] === undefined) {
+            result[key] = [];
+          }
+          result[key].push(cur);
+        }
+      }
+    }
+    return result;
+  }
+
+  var renderHeader = memorize(function(header) {
+    return $('<p class="search-result__header">' + header + '</p>');
+  });
+
+  var renderItem = function(index, title, url) {
+    return $('<li class="search-result__item" data-index="' + index + '"><a class="button" href="' + url + '">' + title + '</a></li>');
+  };
+
+  function render(data) {
+    if (!data) { return null; }
+    var $root = $('<ul></ul>'), i, j, key, keys, cur, itemIndex = 0;
+    keys = Object.keys(data);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      $root.append(renderHeader(key));
+      for (j = 0; j < data[key].length; j++) {
+        cur = data[key][j];
+        $root.append(renderItem(itemIndex++, cur.title, cur.url));
+      }
+    }
+    return $root;
+  }
+
+  // search box
+  var $result = $('.js-search-result'), $resultItems;
+  var lastActiveIndex, activeIndex;
+
+  function clear() {
+    $result.html(null);
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+  }
+  function onInputNotEmpty(val) {
+    $result.html(render(searchByQuery(val)));
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+    $resultItems.eq(0).addClass('active');
+  }
+
+  search.clear = clear;
+  search.onInputNotEmpty = onInputNotEmpty;
+
+  function updateResultItems() {
+    lastActiveIndex >= 0 && $resultItems.eq(lastActiveIndex).removeClass('active');
+    activeIndex >= 0 && $resultItems.eq(activeIndex).addClass('active');
+  }
+
+  function moveActiveIndex(direction) {
+    var itemsCount = $resultItems ? $resultItems.length : 0;
+    if (itemsCount > 1) {
+      lastActiveIndex = activeIndex;
+      if (direction === 'up') {
+        activeIndex = (activeIndex - 1 + itemsCount) % itemsCount;
+      } else if (direction === 'down') {
+        activeIndex = (activeIndex + 1 + itemsCount) % itemsCount;
+      }
+      updateResultItems();
+    }
+  }
+
+  // Char Code: 13  Enter, 37  ⬅, 38  ⬆, 39  ➡, 40  ⬇
+  $(window).on('keyup', function(e) {
+    var modalVisible = search.getModalVisible && search.getModalVisible();
+    if (modalVisible) {
+      if (e.which === 38) {
+        modalVisible && moveActiveIndex('up');
+      } else if (e.which === 40) {
+        modalVisible && moveActiveIndex('down');
+      } else if (e.which === 13) {
+        modalVisible && $resultItems && activeIndex >= 0 && $resultItems.eq(activeIndex).children('a')[0].click();
+      }
+    }
+  });
+
+  $result.on('mouseover', '.search-result__item > a', function() {
+    var itemIndex = $(this).parent().data('index');
+    itemIndex >= 0 && (lastActiveIndex = activeIndex, activeIndex = itemIndex, updateResultItems());
+  });
+});
+</script>
+</div></div>
+
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function scrollToAnchor(anchor, duration, callback) {
+      var $root = this;
+      $root.animate({ scrollTop: $(anchor).position().top }, duration, function() {
+        window.history.replaceState(null, '', window.location.href.split('#')[0] + anchor);
+        callback && callback();
+      });
+    }
+    $.fn.scrollToAnchor = scrollToAnchor;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function affix(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroll,
+        offsetBottom = 0, scrollTarget = window, scroll = window.document, disabled = false, isOverallScroller = true,
+        rootTop, rootLeft, rootHeight, scrollBottom, rootBottomTop,
+        hasInit = false, curState;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.offsetBottom && (offsetBottom = _options.offsetBottom);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroll && (scroll = _options.scroll);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $scrollTarget = $(scrollTarget);
+        isOverallScroller = window.isOverallScroller($scrollTarget[0]);
+        $scroll = $(scroll);
+      }
+      function preCalc() {
+        top();
+        rootHeight = $root.outerHeight();
+        rootTop = $root.offset().top + (isOverallScroller ? 0 :  $scrollTarget.scrollTop());
+        rootLeft = $root.offset().left;
+      }
+      function calc(needPreCalc) {
+        needPreCalc && preCalc();
+        scrollBottom = $scroll.outerHeight() - offsetBottom - rootHeight;
+        rootBottomTop = scrollBottom - rootTop;
+      }
+      function top() {
+        if (curState !== 'top') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: 0
+          });
+          curState = 'top';
+        }
+      }
+      function fixed() {
+        if (curState !== 'fixed') {
+          $root.addClass('fixed').css({
+            left: rootLeft + 'px',
+            top: 0
+          });
+          curState = 'fixed';
+        }
+      }
+      function bottom() {
+        if (curState !== 'bottom') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: rootBottomTop + 'px'
+          });
+          curState = 'bottom';
+        }
+      }
+      function setState() {
+        var scrollTop = $scrollTarget.scrollTop();
+        if (scrollTop >= rootTop && scrollTop <= scrollBottom) {
+          fixed();
+        } else if (scrollTop < rootTop) {
+          top();
+        } else {
+          bottom();
+        }
+      }
+      function init() {
+        if(!hasInit) {
+          var interval, timeout;
+          calc(true); setState();
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState();
+          });
+          $window.on('resize', function() {
+            disabled || (calc(true), setState());
+          });
+          hasInit = true;
+        }
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions,
+        refresh: function() {
+          calc(true, { animation: false }); setState();
+        }
+      };
+    }
+    $.fn.affix = affix;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function toc(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroller, $tocUl = $('<ul class="toc toc--ellipsis"></ul>'), $tocLi, $headings, $activeLast, $activeCur,
+        selectors = 'h1,h2,h3', container = 'body', scrollTarget = window, scroller = 'html, body', disabled = false,
+        headingsPos, scrolling = false, hasRendered = false, hasInit = false;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.selectors && (selectors = _options.selectors);
+        _options.container && (container = _options.container);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroller && (scroller = _options.scroller);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $headings = $(container).find(selectors).filter('[id]');
+        $scrollTarget = $(scrollTarget);
+        $scroller = $(scroller);
+      }
+      function calc() {
+        headingsPos = [];
+        $headings.each(function() {
+          headingsPos.push(Math.floor($(this).position().top));
+        });
+      }
+      function setState(element, disabled) {
+        var scrollTop = $scrollTarget.scrollTop(), i;
+        if (disabled || !headingsPos || headingsPos.length < 1) { return; }
+        if (element) {
+          $activeCur = element;
+        } else {
+          for (i = 0; i < headingsPos.length; i++) {
+            if (scrollTop >= headingsPos[i]) {
+              $activeCur = $tocLi.eq(i);
+            } else {
+              $activeCur || ($activeCur = $tocLi.eq(i));
+              break;
+            }
+          }
+        }
+        $activeLast && $activeLast.removeClass('active');
+        ($activeLast = $activeCur).addClass('active');
+      }
+      function render() {
+        if(!hasRendered) {
+          $root.append($tocUl);
+          $headings.each(function() {
+            var $this = $(this);
+            $tocUl.append($('<li></li>').addClass('toc-' + $this.prop('tagName').toLowerCase())
+              .append($('<a></a>').text($this.text()).attr('href', '#' + $this.prop('id'))));
+          });
+          $tocLi = $tocUl.children('li');
+          $tocUl.on('click', 'a', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            scrolling = true;
+            setState($this.parent());
+            $scroller.scrollToAnchor($this.attr('href'), 400, function() {
+              scrolling = false;
+            });
+          });
+        }
+        hasRendered = true;
+      }
+      function init() {
+        var interval, timeout;
+        if(!hasInit) {
+          render(); calc(); setState(null, scrolling);
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState(null, scrolling);
+          });
+          $window.on('resize', window.throttle(function() {
+            if (!disabled) {
+              render(); calc(); setState(null, scrolling);
+            }
+          }, 100));
+        }
+        hasInit = true;
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions
+      };
+    }
+    $.fn.toc = toc;
+  });
+})();
+/*(function () {
+
+})();*/
+</script><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $pageMask = $('.js-page-mask');
+    var $pageRoot = $('.js-page-root');
+    var $sidebarShow = $('.js-sidebar-show');
+    var $sidebarHide = $('.js-sidebar-hide');
+
+    function freeze(e) {
+      if (e.target === $pageMask[0]) {
+        e.preventDefault();
+      }
+    }
+    function stopBodyScrolling(bool) {
+      if (bool === true) {
+        window.addEventListener('touchmove', freeze, { passive: false });
+      } else {
+        window.removeEventListener('touchmove', freeze, { passive: false });
+      }
+    }
+
+    $sidebarShow.on('click', function() {
+      stopBodyScrolling(true); $pageRoot.addClass('show-sidebar');
+    });
+    $sidebarHide.on('click', function() {
+      stopBodyScrolling(false); $pageRoot.removeClass('show-sidebar');
+    });
+  });
+})();
+</script><script>
+  /* toc must before affix, since affix need to konw toc' height. */(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  var TOC_SELECTOR = window.TEXT_VARIABLES.site.toc.selectors;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window);
+    var $articleContent = $('.js-article-content');
+    var $tocRoot = $('.js-toc-root'), $col2 = $('.js-col-aside');
+    var toc;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+    var hasToc = $articleContent.find(TOC_SELECTOR).length > 0;
+
+    function disabled() {
+      return $col2.css('display') === 'none' || !hasToc;
+    }
+
+    tocDisabled = disabled();
+
+    toc = $tocRoot.toc({
+      selectors: TOC_SELECTOR,
+      container: $articleContent,
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      tocDisabled = disabled();
+      toc && toc.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window), $pageFooter = $('.js-page-footer');
+    var $pageAside = $('.js-page-aside');
+    var affix;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+
+    affix = $pageAside.affix({
+      offsetBottom: $pageFooter.outerHeight(),
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      scroll: hasSidebar ? $('.js-page-main').children() : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      affix && affix.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+    window.pageAsideAffix = affix;
+  });
+})();
+</script>
+    </div>
+    <script>(function () {
+  var $root = document.getElementsByClassName('root')[0];
+  if (window.hasEvent('touchstart')) {
+    $root.dataset.isTouch = true;
+    document.addEventListener('touchstart', function(){}, false);
+  }
+})();
+</script>
+  </body>
+</html>
+

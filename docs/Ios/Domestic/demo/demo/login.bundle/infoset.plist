@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>tlink</key>
+	<string>https://yjdzz.unoao.com/qq_conn/101860838</string>
+	<key>channel</key>
+	<string>121</string>
+	<key>gameid</key>
+	<string>1156</string>
+	<key>trackKey</key>
+	<string>b17e8a65fd93353c00349ee3a2a565b8</string>
+	<key>weichatAppid</key>
+	<string>wx180c8f3360de0b12</string>
+	<key>wlink</key>
+	<string>https://yjdzz.unoao.com/yjdzz/</string>
+	<key>wbAppKey</key>
+	<string>3118377197</string>
+	<key>rolelevel</key>
+	<string>6</string>
+	<key>tenchentId</key>
+	<string>101860838</string>
+	<key>pushAppid</key>
+	<string>1600005427</string>
+	<key>pushAppkey</key>
+	<string>IIOMAQYO58GB</string>
+</dict>
+</plist>

@@ -1,0 +1,1769 @@
+<!DOCTYPE html><html lang="zh_CN">
+  <head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>GM88 游戏 SDK</title>
+
+<meta name="description" content="GM88 游戏 SDK 文档
+">
+<link rel="canonical" href="/Android/Global/docs/DOCUMENT.html"><link rel="alternate" type="application/rss+xml" title="GM88 游戏 SDK" href="/feed.xml"><!-- start favicons snippet, use https://realfavicongenerator.net/ --><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#fc4d50"><link rel="shortcut icon" href="/assets/favicon.ico">
+
+<meta name="msapplication-TileColor" content="#ffc40d"><meta name="msapplication-config" content="/assets/browserconfig.xml">
+
+<meta name="theme-color" content="#ffffff">
+<!-- end favicons snippet --><link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" ><!-- start custom head snippets -->
+
+<!-- end custom head snippets -->
+<script>(function() {
+  window.isArray = function(val) {
+    return Object.prototype.toString.call(val) === '[object Array]';
+  };
+  window.isString = function(val) {
+    return typeof val === 'string';
+  };
+
+  window.hasEvent = function(event) {
+    return 'on'.concat(event) in window.document;
+  };
+
+  window.isOverallScroller = function(node) {
+    return node === document.documentElement || node === document.body || node === window;
+  };
+
+  window.isFormElement = function(node) {
+    var tagName = node.tagName;
+    return tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
+  };
+
+  window.pageLoad = (function () {
+    var loaded = false, cbs = [];
+    window.addEventListener('load', function () {
+      var i;
+      loaded = true;
+      if (cbs.length > 0) {
+        for (i = 0; i < cbs.length; i++) {
+          cbs[i]();
+        }
+      }
+    });
+    return {
+      then: function(cb) {
+        cb && (loaded ? cb() : (cbs.push(cb)));
+      }
+    };
+  })();
+})();
+(function() {
+  window.throttle = function(func, wait) {
+    var args, result, thisArg, timeoutId, lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+    return function() {
+      var now = new Date,
+        remaining = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remaining <= 0) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      } else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remaining);
+      }
+      return result;
+    };
+  };
+})();
+(function() {
+  var Set = (function() {
+    var add = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (data[i] === item) {
+          return;
+        }
+      }
+      this.size ++;
+      data.push(item);
+      return data;
+    };
+
+    var Set = function(data) {
+      this.size = 0;
+      this._data = [];
+      var i;
+      if (data.length > 0) {
+        for (i = 0; i < data.length; i++) {
+          add.call(this, data[i]);
+        }
+      }
+    };
+    Set.prototype.add = add;
+    Set.prototype.get = function(index) { return this._data[index]; };
+    Set.prototype.has = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (this.get(i) === item) {
+          return true;
+        }
+      }
+      return false;
+    };
+    Set.prototype.is = function(map) {
+      if (map._data.length !== this._data.length) { return false; }
+      var i, j, flag, tData = this._data, mData = map._data;
+      for (i = 0; i < tData.length; i++) {
+        for (flag = false, j = 0; j < mData.length; j++) {
+          if (tData[i] === mData[j]) {
+            flag = true;
+            break;
+          }
+        }
+        if (!flag) { return false; }
+      }
+      return true;
+    };
+    Set.prototype.values = function() {
+      return this._data;
+    };
+    return Set;
+  })();
+
+  window.Lazyload = (function(doc) {
+    var queue = {js: [], css: []}, sources = {js: {}, css: {}}, context = this;
+    var createNode = function(name, attrs) {
+      var node = doc.createElement(name), attr;
+      for (attr in attrs) {
+        if (attrs.hasOwnProperty(attr)) {
+          node.setAttribute(attr, attrs[attr]);
+        }
+      }
+      return node;
+    };
+    var end = function(type, url) {
+      var s, q, qi, cbs, i, j, cur, val, flag;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        s[url] = true;
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (cur.urls.has(url)) {
+            qi = cur, val = qi.urls.values();
+            qi && (cbs = qi.callbacks);
+            for (flag = true, j = 0; j < val.length; j++) {
+              cur = val[j];
+              if (!s[cur]) {
+                flag = false;
+              }
+            }
+            if (flag && cbs && cbs.length > 0) {
+              for (j = 0; j < cbs.length; j++) {
+                cbs[j].call(context);
+              }
+              qi.load = true;
+            }
+          }
+        }
+      }
+    };
+    var load = function(type, urls, callback) {
+      var s, q, qi, node, i, cur,
+        _urls = typeof urls === 'string' ? new Set([urls]) : new Set(urls), val, url;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (_urls.is(cur.urls)) {
+            qi = cur;
+            break;
+          }
+        }
+        val = _urls.values();
+        if (qi) {
+          callback && (qi.load || qi.callbacks.push(callback));
+          callback && (qi.load && callback());
+        } else {
+          q.push({
+            urls: _urls,
+            callbacks: callback ? [callback] : [],
+            load: false
+          });
+          for (i = 0; i < val.length; i++) {
+            node = null, url = val[i];
+            if (s[url] === undefined) {
+              (type === 'js' ) && (node = createNode('script', { src: url }));
+              (type === 'css') && (node = createNode('link', { rel: 'stylesheet', href: url }));
+              if (node) {
+                node.onload = (function(type, url) {
+                  return function() {
+                    end(type, url);
+                  };
+                })(type, url);
+                (doc.head || doc.body).appendChild(node);
+                s[url] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+    return {
+      js: function(url, callback) {
+        load('js', url, callback);
+      },
+      css: function(url, callback) {
+        load('css', url, callback);
+      }
+    };
+  })(this.document);
+})();
+</script><script>
+  (function() {
+    var TEXT_VARIABLES = {
+      version: '2.2.6',
+      sources: {
+        font_awesome: 'https://use.fontawesome.com/releases/v5.0.13/css/all.css',
+        jquery: 'https://unpkg.com/jquery@3.3.1/dist/jquery.min.js',
+        leancloud_js_sdk: '//cdn.jsdelivr.net/npm/leancloud-storage@3.13.2/dist/av-min.js',
+        chart: 'https://unpkg.com/chart.js@2.7.2/dist/Chart.min.js',
+        gitalk: {
+          js: 'https://unpkg.com/gitalk@1.2.2/dist/gitalk.min.js',
+          css: 'https://unpkg.com/gitalk@1.2.2/dist/gitalk.css'
+        },
+        valine: 'https//unpkg.com/valine/dist/Valine.min.js',
+        mathjax: 'https://unpkg.com/mathjax@2.7.4/unpacked/MathJax.js?config=TeX-MML-AM_CHTML',
+        mermaid: 'https://unpkg.com/mermaid@8.0.0-rc.8/dist/mermaid.min.js'
+      },
+      site: {
+        toc: {
+          selectors: 'h1,h2,h3'
+        }
+      },
+      paths: {
+        search_js: '/assets/search.js'
+      }
+    };
+    window.TEXT_VARIABLES = TEXT_VARIABLES;
+  })();
+</script>
+</head>
+  <body>
+    <div class="root" data-is-touch="false">
+      <div class="layout--page layout--page--sidebar clearfix js-page-root">
+  <div class="page__mask d-print-none js-page-mask js-sidebar-hide"></div>
+  <div class="page__viewport">
+    <div class="page__actions d-print-none">
+      <div class="button button--circle button--lg box-shadow-2 sidebar-button js-sidebar-show">
+        <i class="fas fa-bars icon--show"></i>
+      </div>
+    </div>
+
+    <div class="grid page__grid">
+
+      <div class="page__sidebar d-print-none"><div class="sidebar-toc"><ul class="toc toc--navigator">
+<li class="toc-h1">准备工作</li>
+<li class="toc-h2"><a href="/Start.html">开始</a></li>
+<li class="toc-h2"><a href="/Download.html">SDK下载</a></li>
+<li class="toc-h1">Android文档</li>
+<li class="toc-h2"><a href="/Android/Domestic/docs/DOCUMENT.html">Android国内</a></li>
+<li class="toc-h2 active"><a href="/Android/Global/docs/DOCUMENT.html">Android海外</a></li>
+<li class="toc-h2"><a href="/Android/Global-StandAlone/docs/DOCUMENT.html">Android海外单机</a></li>
+<li class="toc-h1">IOS文档</li>
+<li class="toc-h2"><a href="/Ios/Domestic/docs/DOCUMENT.html">IOS国内</a></li>
+<li class="toc-h2"><a href="/Ios/Global/docs/DOCUMENT.html">IOS海外</a></li>
+<li class="toc-h2"><a href="/Ios/Global-StandAlone/docs/DOCUMENT.html">IOS海外单机</a></li>
+</ul></div></div>
+<div class="page__main js-page-main has-aside cell cell--auto">
+
+      <div class="page__main-inner">
+<div class="page__header d-print-none">
+<header class="header"><div class="main">
+      <div class="header__title">
+        <div class="header__brand">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewbox="0 0 24 24">
+<style type="text/css">
+	.st0{fill:#515151;}
+</style>
+<path class="st0" d="M1.7,22.3c5.7-5.7,11.3-5.7,17,0c3.3-3.3,3.5-5.3,0.8-6c2.7,0.7,3.5-1.1,2.3-5.6s-3.3-5.2-6.3-2.1
+	c3-3,2.3-5.2-2.1-6.3S7,1.8,7.7,4.6C7,1.8,5,2.1,1.7,5.3C7.3,11,7.3,16.7,1.7,22.3"></path>
+</svg>
+<a title="GM88 游戏 SDK 文档
+" href="/">GM88 游戏 SDK</a>
+</div>
+<button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button>
+</div>
+<nav class="navigation">
+        <ul>
+<li class="navigation__item"><a href="/">首页</a></li>
+<li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li>
+</ul>
+      </nav>
+</div>
+  </header>
+</div>
+<div class="page__content"><div class="main"><div class="grid grid--reverse">
+
+              <div class="col-aside d-print-none js-col-aside"><aside class="page__aside js-page-aside"><div class="toc-aside js-toc-root"></div>
+</aside></div>
+
+              <div class="col-main cell cell--auto">
+<!-- start custom main top snippet -->
+
+<!-- end custom main top snippet -->
+<article itemscope itemtype="http://schema.org/Article"><div class="article__header"><header><h1></h1></header></div>
+<meta itemprop="headline" content="">
+<div class="article__info clearfix"><ul class="right-col menu"></ul></div>
+<meta itemprop="author" content="怪猫TP">
+<div class="js-article-content">
+<div class="layout--article">
+<!-- start custom article top snippet -->
+
+<!-- end custom article top snippet -->
+<div class="article__content" itemprop="articleBody">
+<h1 id="gm88-android海外游戏132版本sdk-对接文档">GM88 Android海外游戏1.3.2版本SDK 对接文档</h1>
+
+<p><strong><em>请注意：demo内的所有参数均是为了方便展示，接入时请使用运营提供的参数进行接入</em></strong></p>
+
+<h2 id="1相关依赖引入">1.相关依赖引入</h2>
+
+<p>在工程级别的build.gradle文件 的 android-&gt;defalutConfig 内加入以下代码</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>multiDexEnabled true
+</code></pre></div></div>
+
+<p>在工程级别的build.gradle 的android 内加入以下代码</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   defaultConfig{
+        minSdkVersion 17
+        targetSdkVersion 28
+        multiDexEnabled true
+    }
+    sourceSets {
+        main {
+            assets.srcDirs = ['../assets', 'src/main/assets', 'src/main/assets/']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+</code></pre></div></div>
+<p>引入以下依赖：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>implementation fileTree(dir: 'libs', include: ['*.jar'])
+implementation(name: 'Globalsdk_1.3.2', ext: 'aar')
+implementation(name: 'cafeSdk-4.4.1', ext: 'aar')
+implementation(name: 'sos_library-1.1.3.4', ext: 'aar')
+implementation 'androidx.appcompat:appcompat:1.0.0'
+implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+// Add dependency crashlytics
+implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
+implementation 'com.google.firebase:firebase-analytics:17.6.0'
+// Check for v11.4.2 or higher
+implementation 'com.google.firebase:firebase-core:17.2.0'
+
+// (Recommended) Add Analytics
+implementation platform('com.google.firebase:firebase-bom:25.12.0')
+
+// Required -- JUnit 4 framework
+testImplementation 'junit:junit:4.12'
+// Optional -- Mockito framework（可选，用于模拟一些依赖对象，以达到隔离依赖的效果）
+testImplementation 'org.mockito:mockito-core:2.19.0'
+androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+androidTestImplementation 'androidx.test:runner:1.2.0'
+androidTestImplementation 'androidx.test:rules:1.2.0'
+api 'com.google.gms:google-services:4.3.3'
+api 'com.google.android.gms:play-services-analytics:17.0.0'
+api 'com.google.android.gms:play-services-auth:17.0.0'
+api 'com.facebook.android:facebook-android-sdk:5.0.0'
+api 'org.apache.httpcomponents:httpcore:4.4.10'
+api 'com.google.android.gms:play-services-ads:19.0.0'
+implementation 'com.google.ads.mediation:applovin:9.11.2.0'
+implementation 'com.google.ads.mediation:unity:3.4.2.0'
+implementation 'com.google.ads.mediation:ironsource:6.14.0.0'
+implementation 'com.google.ads.mediation:vungle:6.7.0.0'
+implementation 'com.google.android.play:core:1.8.0'
+api 'androidx.multidex:multidex:2.0.1'
+//noinspection GradleCompatible
+api 'androidx.recyclerview:recyclerview:1.1.0'
+// Required Dependency by Audience Network SDK
+api 'com.facebook.android:audience-network-sdk:5.6.0'
+api 'com.alibaba:fastjson:1.1.70.android'
+//firebase
+api 'androidx.appcompat:appcompat:1.1.0'
+api 'androidx.annotation:annotation:1.1.0'
+api 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
+api 'androidx.legacy:legacy-support-v4:1.0.0'
+api 'androidx.core:core:1.2.0'
+api 'com.google.firebase:firebase-core:17.2.3'
+api 'com.google.firebase:firebase-iid:20.1.0'
+api 'android.arch.work:work-runtime:1.0.1'
+api 'com.google.firebase:firebase-messaging:20.1.1'
+api 'com.google.guava:guava:28.0-jre'
+api 'androidx.constraintlayout:constraintlayout:1.1.3'
+
+// Add the dependency for the Performance Monitoring library
+api 'com.google.firebase:firebase-perf:19.0.5'
+//Dynamic-links
+api 'com.google.firebase:firebase-dynamic-links:19.1.0'
+api 'com.google.firebase:firebase-analytics:17.2.3'
+implementation 'com.braintreepayments.api:braintree:2.+'
+//谷歌支付
+implementation 'com.android.billingclient:billing:3.0.0'
+//推特登陆和分享相关
+implementation 'com.twitter.sdk.android:twitter-core:3.1.1'
+implementation 'com.twitter.sdk.android:tweet-ui:3.1.1'
+implementation 'com.twitter.sdk.android:tweet-composer:3.1.1'
+api 'com.linecorp:linesdk:5.0.1'
+implementation 'com.google.ads.mediation:facebook:5.8.0.0'
+</code></pre></div></div>
+<p>在工程级别的build.gradle 文件内增加以下插件</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'com.google.firebase.crashlytics'
+    apply plugin: 'com.google.firebase.firebase-perf'
+</code></pre></div></div>
+
+<p>在项目级别的build.gradle 文件内增加以下内容</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>buildscript {
+    repositories {
+        google()
+        jcenter()
+
+        mavenCentral()
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+        maven { url 'https://maven.google.com' }
+        maven {
+            url "https://dl.bintray.com/ironsource-mobile/android-sdk"
+        }
+
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.4.2'
+
+        classpath 'com.google.gms:google-services:4.3.3'
+
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.3.0'
+
+        // Add the dependency for the Performance Monitoring plugin
+        classpath 'com.google.firebase:perf-plugin:1.3.1'  // Performance Monitoring plugin
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+allprojects {
+    repositories {
+        jcenter()
+        google()
+        flatDir {
+            dirs 'libs'
+        }
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+        maven {
+            url 'https://dl.bintray.com/ironsource-mobile/android-sdk'
+        }
+    }
+}
+</code></pre></div></div>
+
+<h2 id="2相关资源引入">2.相关资源引入</h2>
+<h3 id="创建assets文件夹拷贝资源内的gmconfigxml">创建assets文件夹。拷贝资源内的GMConfig.xml</h3>
+<p>1）请修改gmsdk标签内的 appId参数为运营提供的游戏id；appReleaseId为提供的发布记录id。
+2）Google标签内的clientId，为运营提供的谷歌ClientID；billing为Google支付秘钥。
+3）line标签内的channel，为运营提供的Line登录LineChannelID。
+4）googlead和fbad标签内的内容，修改为运营提供的相应的广告变现参数。
+5）如果游戏是韩国版本，需要修改café标签内的相关参数为运营提供的参数。
+6）出正式包时请修改host标签内的url链接为正式服链接，地址为https://m-xmjen.hkpctimes.com。</p>
+
+<h3 id="拷贝运营提供的google-servicesjson文件">拷贝运营提供的google-services.json文件</h3>
+
+<p>拷贝运营提供的google-services.json文件到工程级别的主目录。如果是android studio开发，拷贝到app目录下即可
+<strong>请注意，demo中没有添加google-services.json，如果要运行demo需要填加，漏加会影响运行、登录</strong></p>
+
+<h3 id="添加libs下相关aar依赖">添加libs下相关aar依赖</h3>
+
+<p>请添加并引入libs内的全部aar依赖</p>
+
+<h3 id="清单文件内容添加">清单文件内容添加</h3>
+
+<p>添加Demo内的清单文件内容到游戏Manifest内，并修改To-do标签内的相关value，具体value值运营会提供</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    &lt;uses-library
+        android:name="org.apache.http.legacy"
+        android:required="false" /&gt;
+
+    &lt;meta-data
+        android:name="com.facebook.sdk.ApplicationId"
+        android:value="@string/facebook_app_id" /&gt;
+    &lt;!--todo  facebook广告参数--&gt;
+    &lt;provider
+        android:name="com.facebook.FacebookContentProvider"
+        android:authorities="com.facebook.app.FacebookContentProvider436121163675645"
+        android:exported="true" /&gt;
+    &lt;activity
+        android:name="com.facebook.CustomTabActivity"
+        android:exported="true"&gt;
+    &lt;/activity&gt;
+
+    &lt;receiver
+        android:name="com.appsflyer.SingleInstallBroadcastReceiver"
+        android:exported="true"&gt;
+        &lt;intent-filter&gt;
+            &lt;action android:name="com.android.vending.INSTALL_REFERRER" /&gt;
+        &lt;/intent-filter&gt;
+    &lt;/receiver&gt;
+
+    &lt;!--todo  广告参数 AdMob应用ID--&gt;
+    &lt;meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="ca-app-pub-7496069579613989~1013034939" /&gt;
+</code></pre></div></div>
+
+<p>在application节点内添加：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>android:networkSecurityConfig="@xml/network_security_config"
+</code></pre></div></div>
+
+<p>在启动activity下添加：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.VIEW" /&gt;
+        &lt;category android:name="android.intent.category.DEFAULT" /&gt;
+        &lt;category android:name="android.intent.category.BROWSABLE" /&gt;
+        &lt;data android:scheme="@string/fb_login_protocol_scheme" /&gt;
+    &lt;/intent-filter&gt;
+
+</code></pre></div></div>
+
+<h3 id="资源文件添加">资源文件添加</h3>
+
+<p>在项目的values文件夹内，添加如下的strings：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;string name="facebook_app_id"&gt;facebook_app_id&lt;/string&gt;
+&lt;string name="fb_login_protocol_scheme"&gt;fbfacebook_app_id&lt;/string&gt;
+</code></pre></div></div>
+<p><strong>请注意，请将facebook_app_id，替换为运营提供的id，fb_login_protocol_scheme中须保留fb开头</strong></p>
+
+<h2 id="3sdk方法文档">3.SDK方法文档</h2>
+
+<h3 id="31application内的初始化">3.1Application内的初始化</h3>
+
+<p>首先使项目中的Application继承PSDKApplication，若项目无Application，请自定义创建，并在清单文件中注册。(参考demo)
+在Application的onCreate方法中实现以下：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.initApplication(this);
+FirebaseApp.initializeApp(this);
+AudienceNetworkAds.initialize(this);
+</code></pre></div></div>
+<p>在Application的attachBaseContext方法中实现以下：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MultiDex.install(this);
+</code></pre></div></div>
+
+<h3 id="32mainactivity内的初始化">3.2MainActivity内的初始化</h3>
+
+<p>SDK使用统一的Callback，在MainActivity(游戏主Activity)的onCreate方法内实现以下(监听回调根据所需添加)：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MSDK.setCallBack(new GMCallback() {
+            @Override
+            public void onCallBack(final Message msg) {
+                switch (msg.what) {
+                    case GMActionCode.ACTION_INIT_SUCC://初始化成功
+
+                        break;
+                    case GMActionCode.ACTION_INIT_FAILED://初始化失败
+
+                        break;
+                    case GMActionCode.ACTION_LOGIN_SUCC://登录成功，返回User
+
+                        break;
+                    case GMActionCode.ACTION_LOGIN_CANCEL://退出登录
+
+                        break;
+                    case GMActionCode.ACTION_LOGIN_FAILED://登录失败
+
+                        break;
+                    case GMActionCode.ACTION_LOGOUT_SUCC://登出成功
+
+                        break;
+                    case GMActionCode.ACTION_GAME_EXIT://退出游戏
+                        finish();
+                        break;
+                    case GMActionCode.ACTION_LOGOUT_FAILED://登出失败，一般不会出现，出现代表有问题
+
+                        break;
+                    case GMActionCode.ACTION_PAY_SUCC://支付成功
+
+                        break;
+                    case GMActionCode.ACTION_PAY_CANCEL://用户退出支付
+
+                        break;
+                    case GMActionCode.ACTION_PAY_FAILED://支付失败
+
+                        break;
+                    case GMActionCode.ACTION_ADSHOW_SUCCESS://广告播放完成
+
+                        break;
+                    case GMActionCode.ACTION_ADSHOW_FAILED:// 广告播放失败
+
+                        break;
+                    case GMActionCode.ACTION_SHARE_SUCCESS://分享成功
+
+                        break;
+                    case GMActionCode.ACTION_SHARE_FAILED://分享失败
+
+                        break;
+                    case GMActionCode.ACTION_SHARE_CANCEL://分享取消
+
+                        break;
+                    case GMActionCode.ACTION_QUERY_NOTBIND://未绑定
+
+                        break;
+                    case GMActionCode.ACTION_QUERY_BIND_FAILED://绑定失败
+
+                        break;
+                    case GMActionCode.ACTION_QUERY_ISBIND://已绑定
+
+                        break;
+                    case GMActionCode.ACTION_BIND_SUCCESS://绑定成功
+
+                        break;
+                    case GMActionCode.ACTION_BIND_FAILED://绑定失败
+
+                        break;
+                    case GMActionCode.ACTION_TRANSLATION_SUCCESS://翻译成功
+                        break;
+                    
+                    case GMActionCode.ACTION_TRANSLATION_FAILED://翻译失败
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+        GMSDK.initMainActivity(OverSeaGameActivity.this);
+</code></pre></div></div>
+
+<h3 id="33发起登录">3.3发起登录</h3>
+<p>当游戏收到初始化成功后，可发起登录
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doLogin();
+</code></pre></div></div>
+<p>登录成功或者失败，都可以在回调中得到结果。返回token，示例:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>JSONObject loginResult = new JSONObject(String.valueOf(msg.obj));
+String token = loginResult.getString("token");
+</code></pre></div></div>
+<p>请使用token调用后端接口获得用户标识，收到回调的token，建议通过服务端验证token，获取用户id，详情查看服务端文档</p>
+
+<h3 id="34发起支付">3.4发起支付</h3>
+<p>当游戏内需发起支付时，应调用此接口
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doPay(Map&lt;String, String&gt; payJson)
+</code></pre></div></div>
+<p><strong>payJson参数</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>productId</td>
+      <td>string</td>
+      <td>商品ID</td>
+    </tr>
+    <tr>
+      <td>productName</td>
+      <td>string</td>
+      <td>商品名称，会显示在相应支付界面上</td>
+    </tr>
+    <tr>
+      <td>productPrice</td>
+      <td>float</td>
+      <td>商品价格</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>订单透传参数，这些参数会在支付回调时一并回传给CP，请CP自行解析</td>
+    </tr>
+    <tr>
+      <td>roleId</td>
+      <td>string</td>
+      <td>待支付角色ID</td>
+    </tr>
+    <tr>
+      <td>roleName</td>
+      <td>string</td>
+      <td>待支付角色名</td>
+    </tr>
+    <tr>
+      <td>serverId</td>
+      <td>string</td>
+      <td>待支付角色区服ID</td>
+    </tr>
+    <tr>
+      <td>serverName</td>
+      <td>string</td>
+      <td>待支付角色区服名称</td>
+    </tr>
+    <tr>
+      <td>notifyUrl</td>
+      <td>string</td>
+      <td>支付通知地址，没有的话请不要传递该参数(请求信息内不需要该参数为空)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>请注意，productName、productId需按照计费表内数据传入，否则不会创建订单</strong></p>
+
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Map&lt;String, String&gt; payinfo = new HashMap&lt;&gt;();
+payinfo.put("productName", "1001-60元寶");
+payinfo.put("productPrice", "0.99");
+payinfo.put("productId", "1001");
+payinfo.put("roleId", "1");
+payinfo.put("roleName", "1");
+payinfo.put("serverId", "1");
+payinfo.put("serverName", "1");
+payinfo.put("notifyUrl", "");
+payinfo.put("extra", System.currentTimeMillis() / 1000 + "");
+GMSDK.doPay(payJson);
+</code></pre></div></div>
+
+<h3 id="35角色变更接口">3.5角色变更接口</h3>
+<p>当游戏内角色状态变化时，应调用此接口
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doSpot(String spotJson)
+</code></pre></div></div>
+<p>| 字段       | 类型     | 说明                                                                                    |
+| ——– | —— | ————————————————————————————- |
+| spotType | string | 事件类型，取值为：1：创建角色   2：完成新手引导 3：玩家等级变化后上传 4:玩家选择完区服                                      |
+| extra    | json   | 这是角色具体信息，格式为Json，包括6种信息：roleId: 角色ID, roleName： 角色名，roleServer： 区服ID， serverName ：区服名字，roleLevel： 角色等级，vipLevel：角色Vip等级   |</p>
+
+<p><strong>请注意，玩家选择完区服上报（spotType为4）必须接入，否则会影响SDK功能，其余上报不接入会影响打点数据准确性</strong>
+调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>JSONObject spotJson = new JSONObject();
+try {
+    spotJson.put("spotType","3");
+    JSONObject extra = new JSONObject();
+    extra.put("roleName","等级回传");
+    extra.put("roleLevel","11");
+    extra.put("roleId","111");
+    extra.put("roleServer","22");
+    extra.put("serverName","1服");
+    extra.put("vipLevel","1");
+    spotJson.put("extra",extra.toString());
+} catch (JSONException e) {
+    e.printStackTrace();
+}
+GMSDK.doSpot(spotJson.toString())
+
+</code></pre></div></div>
+
+<h3 id="36发起分享接口">3.6发起分享接口</h3>
+<p>当游戏需要拉起分享的时候，应调用此接口
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.share(String shareInfo)
+</code></pre></div></div>
+<p><strong>shareInfo 示例</strong>
+| 字段        | 类型     | 说明               |
+| ——— | —— | —————- |
+| shareID   | int    | 分享内容Id(运营提供)   |
+| shareName | string | 分享内容Name(运营提供) |
+| uName     | string | 分享者游戏名           |
+| server    | string | 分享者所在区服          |
+| code      | string | 邀请码(可供接受分享者使用等)  |</p>
+
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>JSONObject shareinfo = new JSONObject();
+try {
+    shareinfo.put("shareID", "1");
+    shareinfo.put("shareName", "分享");
+    shareinfo.put("uName", "11");
+    shareinfo.put("server", "2");
+    shareinfo.put("code", "3");
+} catch (JSONException e) {
+    e.printStackTrace();
+}
+GMSDK.doShare(shareinfo.toString());
+</code></pre></div></div>
+
+<h3 id="37调起广告接口">3.7调起广告接口</h3>
+<p>当游戏需要拉起广告的时候，应调用此接口
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ADSDK.getInstance().doShowAD(String extra);
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段名称</th>
+      <th>类型</th>
+      <th>属性</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>adType</td>
+      <td>int</td>
+      <td>广告形式(目前仅支持激励视频，请直接传int型13)</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>String</td>
+      <td>广告透传参数，在成功的回调内，会原样返回</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>String extra = "{"adType":"13","info":"infos"}";
+ADSDK.getInstance().doShowAD(extra);
+</code></pre></div></div>
+
+<h3 id="38游戏绑定账号接口">3.8游戏绑定账号接口</h3>
+<p>游戏内需提供显示绑定账号页面的入口，点击入口时调用此接口
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.showBind();
+</code></pre></div></div>
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.showBind();
+</code></pre></div></div>
+<p>调用后会给游戏对应的回调</p>
+
+<h3 id="39查询绑定账号接口">3.9查询绑定账号接口</h3>
+<p>游戏内需查询当前账号绑定状态时时调用此接口
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doQueryBind();
+</code></pre></div></div>
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doQueryBind();
+</code></pre></div></div>
+<p>调用后会给游戏对应的回调</p>
+
+<h3 id="310打开外部网页接口">3.10打开外部网页接口</h3>
+<p>当游戏需要通过外部浏览器打开一个网页时，可以使用此方法，包括但不限定打开Facebook粉丝页，Lobi，Twitter，巴哈姆特等
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doOpenURLbyWeb(String url);
+</code></pre></div></div>
+<p>| 字段  | 类型     | 说明        |
+| — | —— | ——— |
+| url | string | 需要打开的网页地址 |</p>
+
+<h3 id="311查询当前游戏需要展示给用户查看的货币">3.11查询当前游戏需要展示给用户查看的货币</h3>
+<p>多语言环境下，当游戏需要查询当前游戏需要展示给用户查看的货币时调用次接口查询
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.getPurchaseList(GlobalCallback callback);
+</code></pre></div></div>
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> GMSDK.getPurchaseList(new GlobalCallback() {
+                    @Override
+                    public void onSuccess(String o) {
+                        SDKLog.d(TAG, "doPurchaseListDone=" + o);
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        SDKLog.d(TAG, "doPurchaseListDone=" + msg);
+                    }
+                });
+            }
+</code></pre></div></div>
+<p>| 字段           | 类型      | 说明                                                                         |
+| ———— | ——- | ————————————————————————– |
+| status       | boolean | true : 查询成功    false:  查询失败                                                |
+| purchaselist | string  | 商品信息实体beanlist                                                             |
+| errorno      | string  | 仅在status 为false 的时候返回，    0：查询失败，游戏可以再次拉起查询，请不要一直尝试。  -1: 因为某些特殊原因，请显示默认货币 |</p>
+
+<p>purchaselist 示例:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>String purchaselist = "{"1001":"$0.99","1002":"$4.99"}";
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>productId</td>
+      <td>string</td>
+      <td>商品id</td>
+    </tr>
+    <tr>
+      <td>price</td>
+      <td>string</td>
+      <td>商品当前价格 带货币符号   ￥6/$0.99</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="312生命周期接入">3.12生命周期接入</h3>
+<p>需要在游戏主Activity内重写以下生命周期方法并接入</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//重写的方法为
+onResume();
+onPause();
+onStop();
+onActivityResult(int requestCode, int resultCode, Intent data);
+onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults);
+onDestroy();
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//接入的方法为
+GMSDK.onResume();
+GMSDK.onPause();
+GMSDK.onStop();
+GMSDK.onActivityResult(int requestCode, int resultCode, Intent data);
+GMSDK.onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults);
+GMSDK.onDestroy();
+</code></pre></div></div>
+
+<p>如果游戏没有对返回键进行处理，请重写以下方法</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>onBackPressed();
+</code></pre></div></div>
+
+<p>接入的方法为</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.onBackPressed();
+</code></pre></div></div>
+
+<h2 id="4sdk方法选接文档">4.SDK方法选接文档</h2>
+
+<p>以下接口为选接接口，按需求接入</p>
+<h3 id="41打开客服中心">4.1打开客服中心</h3>
+
+<p>当游戏内需提供显示打开客服中心页面的入口，点击入口时调用此接口
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.showServiceCenter();
+</code></pre></div></div>
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.showServiceCenter();
+</code></pre></div></div>
+
+<h3 id="42游戏内行为打点">4.2游戏内行为打点</h3>
+
+<p>当游戏内发生相关行为后，应调用此接口，如需接入运营会提供打点表进行接入
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doEventInfo(String eventInfo);
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>eventInfo</td>
+      <td>string</td>
+      <td>行为事件名(该值由运营提供)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doEventInfo(eventInfo);
+</code></pre></div></div>
+
+<h3 id="43将文字存入剪贴板">4.3将文字存入剪贴板</h3>
+
+<p>当游戏需要将文字存入剪贴板时，可以调用此方法
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doSetPasteboard(String extra);
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>需要存入剪贴板的文字</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doEventInfo(extra);
+</code></pre></div></div>
+<h3 id="44获取当前手机系统语言和地区">4.4获取当前手机系统语言和地区</h3>
+
+<p>当游戏需要区分当前手机系统语言时，可以调用此方法来获取
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.doLanguage();
+</code></pre></div></div>
+
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>String language = GMSDK.doLanguage();
+</code></pre></div></div>
+<p>响应：
+返回示例: “zh-CN”。</p>
+
+<p>其中，前半部分表示语言，zh代表中文，后半部分代码地区，CN代表中国。如果只要按语言判断，请只判断前半部分，如果只需按地区判断，请只判断后半部分。因为一种语言会在多个地区出现，一个地区也会有多种语言。</p>
+
+<p>语言码的ISO标准：<a href="https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO 639-1</a></p>
+
+<p>地区码的ISO标准：<a href="https://en.wikipedia.org/wiki/ISO_3166-2">ISO 3166-2</a></p>
+
+<h3 id="45翻译文本">4.5翻译文本</h3>
+
+<p>当游戏需要对任何语言进行翻译时，调用以下方法，该方法会返回源语言对应当前手机语言的翻译
+接口定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.translation2Text(String extra,String sourceText);
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>sourceText</td>
+      <td>string</td>
+      <td>源语言，待翻译的语句</td>
+    </tr>
+    <tr>
+      <td>extra</td>
+      <td>string</td>
+      <td>当前语句的唯一标识，在返回的时候会透传</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>在翻译结束后，会给游戏相应的回调</p>
+
+<p>调用示例：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GMSDK.translation2Text(extra, Hello);
+</code></pre></div></div>
+<p>当翻译成功时，会返回一个Json字符串，形式如下：</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"targetText"</span><span class="p">:</span><span class="s2">"hello"</span><span class="p">,</span><span class="nl">"extra"</span><span class="p">:</span><span class="s2">"test1"</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>当翻译失败时，会返回一个Json字符串，形式如下：</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"errorno"</span><span class="p">:</span><span class="s2">"error"</span><span class="p">,</span><span class="nl">"extra"</span><span class="p">:</span><span class="s2">"test1"</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+</div>
+<div class="d-print-none">
+<footer class="article__footer"><!-- start custom article footer snippet -->
+
+<!-- end custom article footer snippet -->
+<div class="article__license"></div></footer>
+<div class="article__section-navigator clearfix">
+<div class="previous">
+<span>PREVIOUS</span><a href="/Android/Domestic/docs/DOCUMENT.html">Android国内</a>
+</div>
+<div class="next">
+<span>NEXT</span><a href="/Android/Global-StandAlone/docs/DOCUMENT.html">Android海外单机</a>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    $(function() {
+      var $this ,$scroll;
+      var $articleContent = $('.js-article-content');
+      var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+      var scroll = hasSidebar ? '.js-page-main' : 'html, body';
+      $scroll = $(scroll);
+
+      $articleContent.find('.highlight').each(function() {
+        $this = $(this);
+        $this.attr('data-lang', $this.find('code').attr('data-lang'));
+      });
+      $articleContent.find('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').each(function() {
+        $this = $(this);
+        $this.append($('<a class="anchor d-print-none" aria-hidden="true"></a>').html('<i class="fas fa-anchor"></i>'));
+      });
+      $articleContent.on('click', '.anchor', function() {
+        $scroll.scrollToAnchor('#' + $(this).parent().attr('id'), 400);
+      });
+    });
+  });
+})();
+</script>
+</div>
+<section class="page__comments d-print-none"></section></article><!-- start custom main bottom snippet -->
+
+<!-- end custom main bottom snippet -->
+</div>
+            </div></div></div>
+<div class="page__footer d-print-none">
+<footer class="footer py-4 js-page-footer">
+  <div class="main">
+<div itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="怪猫TP">
+<meta itemprop="url" content="/">
+<div class="footer__author-links">
+<div class="author-links">
+  <ul class="menu menu--nowrap menu--inline"></ul>
+</div>
+</div>
+    </div>
+<div class="site-info mt-2">
+      <div>© GM88 游戏 SDK 2020,
+        Powered by <a title="Jekyll is a simple, blog-aware, static site generator." href="http://jekyllrb.com/">Jekyll</a> &amp; <a title="TeXt is a super customizable Jekyll theme." href="https://github.com/kitian616/jekyll-TeXt-theme">TeXt Theme</a>.
+      </div>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+    </div>
+</div>
+</div>
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $body = $('body'), $window = $(window);
+    var $pageRoot = $('.js-page-root'), $pageMain = $('.js-page-main');
+    var activeCount = 0;
+    function modal(options) {
+      var $root = this, visible, onChange, hideWhenWindowScroll = false;
+      var scrollTop;
+      function setOptions(options) {
+        var _options = options || {};
+        visible = _options.initialVisible === undefined ? false : show;
+        onChange = _options.onChange;
+        hideWhenWindowScroll = _options.hideWhenWindowScroll;
+      }
+      function init() {
+        setState(visible);
+      }
+      function setState(isShow) {
+        if (isShow === visible) {
+          return;
+        }
+        visible = isShow;
+        if (visible) {
+          activeCount++;
+          scrollTop = $(window).scrollTop() || $pageMain.scrollTop();
+          $root.addClass('modal--show');
+          $pageMain.scrollTop(scrollTop);
+          activeCount === 1 && ($pageRoot.addClass('show-modal'), $body.addClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.on('scroll', hide);
+          $window.on('keyup', handleKeyup);
+        } else {
+          activeCount > 0 && activeCount--;
+          $root.removeClass('modal--show');
+          $window.scrollTop(scrollTop);
+          activeCount === 0 && ($pageRoot.removeClass('show-modal'), $body.removeClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.off('scroll', hide);
+          $window.off('keyup', handleKeyup);
+        }
+        onChange && onChange(visible);
+      }
+      function show() {
+        setState(true);
+      }
+      function hide() {
+        setState(false);
+      }
+      function handleKeyup(e) {
+        // Char Code: 27  ESC
+        if (e.which ===  27) {
+          hide();
+        }
+      }
+      setOptions(options);
+      init();
+      return {
+        show: show,
+        hide: hide,
+        $el: $root
+      };
+    }
+    $.fn.modal = modal;
+  });
+})();
+</script><div class="modal modal--overflow page__search-modal d-print-none js-page-search-modal">
+<script>
+(function () {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    // search panel
+    var search = (window.search || (window.search = {}));
+    var useDefaultSearchBox = window.useDefaultSearchBox === undefined ?
+      true : window.useDefaultSearchBox ;
+
+    var $searchModal = $('.js-page-search-modal');
+    var $searchToggle = $('.js-search-toggle');
+    var searchModal = $searchModal.modal({ onChange: handleModalChange, hideWhenWindowScroll: true });
+    var modalVisible = false;
+    search.searchModal = searchModal;
+
+    var $searchBox = null;
+    var $searchInput = null;
+    var $searchClear = null;
+
+    function getModalVisible() {
+      return modalVisible;
+    }
+    search.getModalVisible = getModalVisible;
+
+    function handleModalChange(visible) {
+      modalVisible = visible;
+      if (visible) {
+        search.onShow && search.onShow();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].focus();
+      } else {
+        search.onShow && search.onHide();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].blur();
+        setTimeout(function() {
+          useDefaultSearchBox && ($searchInput.val(''), $searchBox.removeClass('not-empty'));
+          search.clear && search.clear();
+          window.pageAsideAffix && window.pageAsideAffix.refresh();
+        }, 400);
+      }
+    }
+
+    $searchToggle.on('click', function() {
+      modalVisible ? searchModal.hide() : searchModal.show();
+    });
+    // Char Code: 83  S, 191 /
+    $(window).on('keyup', function(e) {
+      if (!modalVisible && !window.isFormElement(e.target || e.srcElement) && (e.which === 83 || e.which === 191)) {
+        modalVisible || searchModal.show();
+      }
+    });
+
+    if (useDefaultSearchBox) {
+      $searchBox = $('.js-search-box');
+      $searchInput = $searchBox.children('input');
+      $searchClear = $searchBox.children('.js-icon-clear');
+      search.getSearchInput = function() {
+        return $searchInput.get(0);
+      };
+      search.getVal = function() {
+        return $searchInput.val();
+      };
+      search.setVal = function(val) {
+        $searchInput.val(val);
+      };
+
+      $searchInput.on('focus', function() {
+        $(this).addClass('focus');
+      });
+      $searchInput.on('blur', function() {
+        $(this).removeClass('focus');
+      });
+      $searchInput.on('input', window.throttle(function() {
+        var val = $(this).val();
+        if (val === '' || typeof val !== 'string') {
+          search.clear && search.clear();
+        } else {
+          $searchBox.addClass('not-empty');
+          search.onInputNotEmpty && search.onInputNotEmpty(val);
+        }
+      }, 400));
+      $searchClear.on('click', function() {
+        $searchInput.val(''); $searchBox.removeClass('not-empty');
+        search.clear && search.clear();
+      });
+    }
+  });
+})();
+</script><div class="search search--dark">
+  <div class="main">
+    <div class="search__header">Search</div>
+    <div class="search-bar">
+      <div class="search-box js-search-box">
+        <div class="search-box__icon-search"><i class="fas fa-search"></i></div>
+        <input type="text">
+        <div class="search-box__icon-clear js-icon-clear">
+          <a><i class="fas fa-times"></i></a>
+        </div>
+      </div>
+      <button class="button button--theme-dark button--pill search__cancel js-search-toggle">
+        Cancel</button>
+    </div>
+    <div class="search-result js-search-result"></div>
+  </div>
+</div>
+<script>var SOURCES = window.TEXT_VARIABLES.sources;
+var PAHTS = window.TEXT_VARIABLES.paths;
+window.Lazyload.js([SOURCES.jquery, PAHTS.search_js], function() {
+  var search = (window.search || (window.search = {}));
+  var searchData = window.TEXT_SEARCH_DATA || {};
+
+  function memorize(f) {
+    var cache = {};
+    return function () {
+      var key = Array.prototype.join.call(arguments, ',');
+      if (key in cache) return cache[key];
+      else return cache[key] = f.apply(this, arguments);
+    };
+  }
+
+  /// search
+  function searchByQuery(query) {
+    var i, j, key, keys, cur, _title, result = {};
+    keys = Object.keys(searchData);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      for (j = 0; j < searchData[key].length; j++) {
+        cur = searchData[key][j], _title = cur.title;
+        if ((result[key] === undefined || result[key] && result[key].length < 4 )
+          && _title.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+          if (result[key] === undefined) {
+            result[key] = [];
+          }
+          result[key].push(cur);
+        }
+      }
+    }
+    return result;
+  }
+
+  var renderHeader = memorize(function(header) {
+    return $('<p class="search-result__header">' + header + '</p>');
+  });
+
+  var renderItem = function(index, title, url) {
+    return $('<li class="search-result__item" data-index="' + index + '"><a class="button" href="' + url + '">' + title + '</a></li>');
+  };
+
+  function render(data) {
+    if (!data) { return null; }
+    var $root = $('<ul></ul>'), i, j, key, keys, cur, itemIndex = 0;
+    keys = Object.keys(data);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      $root.append(renderHeader(key));
+      for (j = 0; j < data[key].length; j++) {
+        cur = data[key][j];
+        $root.append(renderItem(itemIndex++, cur.title, cur.url));
+      }
+    }
+    return $root;
+  }
+
+  // search box
+  var $result = $('.js-search-result'), $resultItems;
+  var lastActiveIndex, activeIndex;
+
+  function clear() {
+    $result.html(null);
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+  }
+  function onInputNotEmpty(val) {
+    $result.html(render(searchByQuery(val)));
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+    $resultItems.eq(0).addClass('active');
+  }
+
+  search.clear = clear;
+  search.onInputNotEmpty = onInputNotEmpty;
+
+  function updateResultItems() {
+    lastActiveIndex >= 0 && $resultItems.eq(lastActiveIndex).removeClass('active');
+    activeIndex >= 0 && $resultItems.eq(activeIndex).addClass('active');
+  }
+
+  function moveActiveIndex(direction) {
+    var itemsCount = $resultItems ? $resultItems.length : 0;
+    if (itemsCount > 1) {
+      lastActiveIndex = activeIndex;
+      if (direction === 'up') {
+        activeIndex = (activeIndex - 1 + itemsCount) % itemsCount;
+      } else if (direction === 'down') {
+        activeIndex = (activeIndex + 1 + itemsCount) % itemsCount;
+      }
+      updateResultItems();
+    }
+  }
+
+  // Char Code: 13  Enter, 37  ⬅, 38  ⬆, 39  ➡, 40  ⬇
+  $(window).on('keyup', function(e) {
+    var modalVisible = search.getModalVisible && search.getModalVisible();
+    if (modalVisible) {
+      if (e.which === 38) {
+        modalVisible && moveActiveIndex('up');
+      } else if (e.which === 40) {
+        modalVisible && moveActiveIndex('down');
+      } else if (e.which === 13) {
+        modalVisible && $resultItems && activeIndex >= 0 && $resultItems.eq(activeIndex).children('a')[0].click();
+      }
+    }
+  });
+
+  $result.on('mouseover', '.search-result__item > a', function() {
+    var itemIndex = $(this).parent().data('index');
+    itemIndex >= 0 && (lastActiveIndex = activeIndex, activeIndex = itemIndex, updateResultItems());
+  });
+});
+</script>
+</div>
+</div>
+
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function scrollToAnchor(anchor, duration, callback) {
+      var $root = this;
+      $root.animate({ scrollTop: $(anchor).position().top }, duration, function() {
+        window.history.replaceState(null, '', window.location.href.split('#')[0] + anchor);
+        callback && callback();
+      });
+    }
+    $.fn.scrollToAnchor = scrollToAnchor;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function affix(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroll,
+        offsetBottom = 0, scrollTarget = window, scroll = window.document, disabled = false, isOverallScroller = true,
+        rootTop, rootLeft, rootHeight, scrollBottom, rootBottomTop,
+        hasInit = false, curState;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.offsetBottom && (offsetBottom = _options.offsetBottom);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroll && (scroll = _options.scroll);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $scrollTarget = $(scrollTarget);
+        isOverallScroller = window.isOverallScroller($scrollTarget[0]);
+        $scroll = $(scroll);
+      }
+      function preCalc() {
+        top();
+        rootHeight = $root.outerHeight();
+        rootTop = $root.offset().top + (isOverallScroller ? 0 :  $scrollTarget.scrollTop());
+        rootLeft = $root.offset().left;
+      }
+      function calc(needPreCalc) {
+        needPreCalc && preCalc();
+        scrollBottom = $scroll.outerHeight() - offsetBottom - rootHeight;
+        rootBottomTop = scrollBottom - rootTop;
+      }
+      function top() {
+        if (curState !== 'top') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: 0
+          });
+          curState = 'top';
+        }
+      }
+      function fixed() {
+        if (curState !== 'fixed') {
+          $root.addClass('fixed').css({
+            left: rootLeft + 'px',
+            top: 0
+          });
+          curState = 'fixed';
+        }
+      }
+      function bottom() {
+        if (curState !== 'bottom') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: rootBottomTop + 'px'
+          });
+          curState = 'bottom';
+        }
+      }
+      function setState() {
+        var scrollTop = $scrollTarget.scrollTop();
+        if (scrollTop >= rootTop && scrollTop <= scrollBottom) {
+          fixed();
+        } else if (scrollTop < rootTop) {
+          top();
+        } else {
+          bottom();
+        }
+      }
+      function init() {
+        if(!hasInit) {
+          var interval, timeout;
+          calc(true); setState();
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState();
+          });
+          $window.on('resize', function() {
+            disabled || (calc(true), setState());
+          });
+          hasInit = true;
+        }
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions,
+        refresh: function() {
+          calc(true, { animation: false }); setState();
+        }
+      };
+    }
+    $.fn.affix = affix;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function toc(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroller, $tocUl = $('<ul class="toc toc--ellipsis"></ul>'), $tocLi, $headings, $activeLast, $activeCur,
+        selectors = 'h1,h2,h3', container = 'body', scrollTarget = window, scroller = 'html, body', disabled = false,
+        headingsPos, scrolling = false, hasRendered = false, hasInit = false;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.selectors && (selectors = _options.selectors);
+        _options.container && (container = _options.container);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroller && (scroller = _options.scroller);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $headings = $(container).find(selectors).filter('[id]');
+        $scrollTarget = $(scrollTarget);
+        $scroller = $(scroller);
+      }
+      function calc() {
+        headingsPos = [];
+        $headings.each(function() {
+          headingsPos.push(Math.floor($(this).position().top));
+        });
+      }
+      function setState(element, disabled) {
+        var scrollTop = $scrollTarget.scrollTop(), i;
+        if (disabled || !headingsPos || headingsPos.length < 1) { return; }
+        if (element) {
+          $activeCur = element;
+        } else {
+          for (i = 0; i < headingsPos.length; i++) {
+            if (scrollTop >= headingsPos[i]) {
+              $activeCur = $tocLi.eq(i);
+            } else {
+              $activeCur || ($activeCur = $tocLi.eq(i));
+              break;
+            }
+          }
+        }
+        $activeLast && $activeLast.removeClass('active');
+        ($activeLast = $activeCur).addClass('active');
+      }
+      function render() {
+        if(!hasRendered) {
+          $root.append($tocUl);
+          $headings.each(function() {
+            var $this = $(this);
+            $tocUl.append($('<li></li>').addClass('toc-' + $this.prop('tagName').toLowerCase())
+              .append($('<a></a>').text($this.text()).attr('href', '#' + $this.prop('id'))));
+          });
+          $tocLi = $tocUl.children('li');
+          $tocUl.on('click', 'a', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            scrolling = true;
+            setState($this.parent());
+            $scroller.scrollToAnchor($this.attr('href'), 400, function() {
+              scrolling = false;
+            });
+          });
+        }
+        hasRendered = true;
+      }
+      function init() {
+        var interval, timeout;
+        if(!hasInit) {
+          render(); calc(); setState(null, scrolling);
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState(null, scrolling);
+          });
+          $window.on('resize', window.throttle(function() {
+            if (!disabled) {
+              render(); calc(); setState(null, scrolling);
+            }
+          }, 100));
+        }
+        hasInit = true;
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions
+      };
+    }
+    $.fn.toc = toc;
+  });
+})();
+/*(function () {
+
+})();*/
+</script><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $pageMask = $('.js-page-mask');
+    var $pageRoot = $('.js-page-root');
+    var $sidebarShow = $('.js-sidebar-show');
+    var $sidebarHide = $('.js-sidebar-hide');
+
+    function freeze(e) {
+      if (e.target === $pageMask[0]) {
+        e.preventDefault();
+      }
+    }
+    function stopBodyScrolling(bool) {
+      if (bool === true) {
+        window.addEventListener('touchmove', freeze, { passive: false });
+      } else {
+        window.removeEventListener('touchmove', freeze, { passive: false });
+      }
+    }
+
+    $sidebarShow.on('click', function() {
+      stopBodyScrolling(true); $pageRoot.addClass('show-sidebar');
+    });
+    $sidebarHide.on('click', function() {
+      stopBodyScrolling(false); $pageRoot.removeClass('show-sidebar');
+    });
+  });
+})();
+</script><script>
+  /* toc must before affix, since affix need to konw toc' height. */(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  var TOC_SELECTOR = window.TEXT_VARIABLES.site.toc.selectors;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window);
+    var $articleContent = $('.js-article-content');
+    var $tocRoot = $('.js-toc-root'), $col2 = $('.js-col-aside');
+    var toc;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+    var hasToc = $articleContent.find(TOC_SELECTOR).length > 0;
+
+    function disabled() {
+      return $col2.css('display') === 'none' || !hasToc;
+    }
+
+    tocDisabled = disabled();
+
+    toc = $tocRoot.toc({
+      selectors: TOC_SELECTOR,
+      container: $articleContent,
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      tocDisabled = disabled();
+      toc && toc.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window), $pageFooter = $('.js-page-footer');
+    var $pageAside = $('.js-page-aside');
+    var affix;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+
+    affix = $pageAside.affix({
+      offsetBottom: $pageFooter.outerHeight(),
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      scroll: hasSidebar ? $('.js-page-main').children() : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      affix && affix.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+    window.pageAsideAffix = affix;
+  });
+})();
+</script>
+    </div>
+    <script>(function () {
+  var $root = document.getElementsByClassName('root')[0];
+  if (window.hasEvent('touchstart')) {
+    $root.dataset.isTouch = true;
+    document.addEventListener('touchstart', function(){}, false);
+  }
+})();
+</script>
+  </body>
+</html>
+
