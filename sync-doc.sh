@@ -10,3 +10,5 @@ cp Server/docs/Domestic/H5-DOCUMENT.md docs/Server-H5-Domestic.md
 cp Server/docs/Global/DOCUMENT.md docs/Server-Global.md
 cp Server/docs/Global/H5-DOCUMENT.md docs/Server-H5-Global.md
 
+# 图片
+cp Ios/Global/docs/assets/images/* docs/assets/images
