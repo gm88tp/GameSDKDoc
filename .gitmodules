@@ -16,3 +16,6 @@
 [submodule "Ios/Global-StandAlone"]
 	path = Ios/Global-StandAlone
 	url = https://github.com/gm88tp/Ios-Global-SDK-Demo-StandAlone.git
+[submodule "Android/Global-StandAlone"]
+	path = Android/Global-StandAlone
+	url = https://github.com/gm88tp/Android-Global-SDK-Demo-StandAlone
