@@ -1,6 +1,0 @@
-framework module advertisingCenter {
-  umbrella header "advertisingCenter.h"
-
-  export *
-  module * { export * }
-}
