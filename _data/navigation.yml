@@ -29,7 +29,7 @@ sidebar-zh:
           url:    /docs/Server-Global.html
         - title:  海外H5 SDK
           url:    /docs/Server-H5-Global.html
-  - title:      服务端文档
+  - title:      海外单机文档
     children:
       - title:  Android海外单机
         url:    /docs/Android-Global-StandAlone.html
