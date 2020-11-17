@@ -62,7 +62,6 @@ author:
 repository: user_name/repo_name
 repository_tree: master
 
-
 ## => Paths
 ##############################
 paths:
@@ -214,11 +213,11 @@ defaults:
       sharing: false
       license: true
       aside:
-        toc: false
+        toc: true
       show_edit_on_github: false
       show_subscribe: false
       pageview: true
-      show_title: true
+      show_title: false
       sidebar:
         nav: sidebar-zh
 
