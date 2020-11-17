@@ -12,19 +12,23 @@ sidebar-zh:
   - title:      国内文档
     children:
         - title:  Android国内
-          url:    docs/Android-Domestic.html
+          url:    /docs/Android-Domestic.html
         - title:  IOS国内
           url:    /docs/Ios-Domestic.html
         - title:  国内服务端
           url:    /docs/Server-Domestic.html
+        - title:  国内H5 SDK
+          url:    /docs/Server-H5-Domestic.html
   - title:      海外网游文档
     children:
         - title:  Android海外
           url:    /docs/Android-Global.html
         - title:  IOS海外
           url:    /docs/Ios-Global.html
-        - title:  海外服务器
+        - title:  海外服务端
           url:    /docs/Server-Global.html
+        - title:  海外H5 SDK
+          url:    /docs/Server-H5-Global.html
   - title:      服务端文档
     children:
       - title:  Android海外单机

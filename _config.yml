@@ -214,7 +214,7 @@ defaults:
       sharing: false
       license: true
       aside:
-        toc: true
+        toc: false
       show_edit_on_github: false
       show_subscribe: false
       pageview: true
@@ -230,5 +230,5 @@ plugins:
   - jekyll-paginate
   - jekyll-sitemap
   - jemoji
-  - jekyll-toc
+  # - jekyll-toc
   - jekyll-optional-front-matter
