@@ -23,7 +23,7 @@ optional_front_matter:
 text_skin: orange # "default" (default), "dark", "forest", "ocean", "chocolate", "orange"
 highlight_theme: default # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
 url     : # the base hostname & protocol for your site e.g. https://www.someone.com
-baseurl : #/GameSDKDoc # does not include hostname
+baseurl : /GameSDKDoc # does not include hostname
 title   : GM88 游戏 SDK
 description: > # this means to ignore newlines until "Language & timezone"
   GM88 游戏 SDK 文档
