@@ -393,9 +393,9 @@ GMSDK.doPay(payJson);
 GMSDK.doSpot(String spotJson)
 ```
 
-| 字段      | 类型   | 说明                                                                                 |
+| 字段       | 类型     | 说明                                                                                    |
 | -------- | ------ | ------------------------------------------------------------------------------------- |
-| spotType | string | 事件类型，取值为：1：创建角色   2：完成新手引导 3：玩家等级变化后上传 4:玩家选择完区服           |
+| spotType | string | 事件类型，取值为：1：创建角色   2：完成新手引导 3：玩家等级变化后上传 4:玩家选择完区服                                      |
 | extra    | json   | 这是角色具体信息，格式为Json，包括6种信息：roleId: 角色ID, roleName： 角色名，roleServer： 区服ID， serverName ：区服名字，roleLevel： 角色等级，vipLevel：角色Vip等级   |
 
 **请注意，玩家选择完区服上报（spotType为4）必须接入，否则会影响SDK功能，其余上报不接入会影响打点数据准确性**
@@ -425,7 +425,9 @@ GMSDK.doSpot(spotJson.toString())
 ```
 GMSDK.share(String shareInfo)
 ```
+
 **shareInfo 示例**
+
 | 字段        | 类型     | 说明               |
 | --------- | ------ | ---------------- |
 | shareID   | int    | 分享内容Id(运营提供)   |
@@ -498,6 +500,7 @@ GMSDK.doQueryBind();
 ```
 GMSDK.doOpenURLbyWeb(String url);
 ```
+
 | 字段  | 类型     | 说明        |
 | --- | ------ | --------- |
 | url | string | 需要打开的网页地址 |
@@ -523,6 +526,7 @@ GMSDK.getPurchaseList(GlobalCallback callback);
                 });
             }
 ```
+
 | 字段           | 类型      | 说明                                                                         |
 | ------------ | ------- | -------------------------------------------------------------------------- |
 | status       | boolean | true : 查询成功    false:  查询失败                                                |

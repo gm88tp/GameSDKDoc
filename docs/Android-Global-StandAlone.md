@@ -375,6 +375,7 @@ GMSDK.doPay(payJson);
 ```
 GMSDK.doSpot(String spotJson)
 ```
+
 | 字段       | 类型     | 说明                                                                                    |
 | -------- | ------ | ------------------------------------------------------------------------------------- |
 | spotType | string | 事件类型，取值为：1：创建角色   2：完成新手引导 3：玩家等级变化后上传 4:玩家选择完区服                                      |
@@ -407,6 +408,7 @@ GMSDK.doSpot(spotJson.toString())
 ```
 GMSDK.share(String shareInfo)
 ```
+
 **shareInfo 示例**
 | 字段        | 类型     | 说明               |
 | --------- | ------ | ---------------- |
@@ -471,6 +473,7 @@ GMSDK.getPurchaseList(GlobalCallback callback);
     });
 }
 ```
+
 | 字段           | 类型      | 说明                                                                         |
 | ------------ | ------- | -------------------------------------------------------------------------- |
 | status       | boolean | true : 查询成功    false:  查询失败                                                |
@@ -574,6 +577,7 @@ GMSDK.doEventInfo(extra);
 ```
 GMSDK.openPlatform(String code,String info,String pageid)
 ```
+
 | 字段     | 类型     | 说明                                  |
 | ------ | ------ | ----------------------------------- |
 | code   | string | code :1 韩国论坛 2 Facebook 3 洛比 4 应用商店 |
