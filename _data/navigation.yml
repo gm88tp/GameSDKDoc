@@ -29,6 +29,8 @@ sidebar-zh:
           url:    /docs/Server-Global.html
         - title:  海外H5 SDK
           url:    /docs/Server-H5-Global.html
+        - title:  海外白鹭对接
+          url:    /docs/Egret-Global.html
   - title:      海外单机文档
     children:
       - title:  Android海外单机
