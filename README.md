@@ -25,6 +25,11 @@
 git submodule update --remote
 ```
 
+提交
+```bash
+git commit -m 'message'
+```
+
 推送
 
 ```bash
