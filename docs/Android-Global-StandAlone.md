@@ -42,8 +42,6 @@ implementation 'com.google.firebase:firebase-core:17.2.0'
 // (Recommended) Add Analytics
 implementation 'com.google.firebase:firebase-analytics:17.2.0'
 
-implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
-
 // Required -- JUnit 4 framework
 testImplementation 'junit:junit:4.12'
 // Optional -- Mockito framework（可选，用于模拟一些依赖对象，以达到隔离依赖的效果）
@@ -410,6 +408,7 @@ GMSDK.share(String shareInfo)
 ```
 
 **shareInfo 示例**
+
 | 字段        | 类型     | 说明               |
 | --------- | ------ | ---------------- |
 | shareID   | int    | 分享内容Id(运营提供)   |

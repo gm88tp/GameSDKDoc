@@ -46,12 +46,13 @@ SDK放在SDK文件夹内
 | ------------ | ------ | ---------------------- | ----------------------------------------- |
 | channel      | String | 渠道id，默认不用修改   | 121                                       |
 | gameid       | String | 游戏ID                 | 1156                                      |
-| trackKey     | String | 数据统计的key          | b17e8a65fd93353c00349ee3a2a565b8          |
+| trackKey     | String | 热云数据统计的key          | b17e8a65fd93353c00349ee3a2a565b8          |
 | weichatAppid | String | 微信的appid            | wx180c8f3360de0b12                        |
-| wlink        | String | 微信的链接地址         | https://yjdzz.unoao.com/yjdzz/            |
+| wlink        | String | 微信的链接地址         | https://...      |
 | wbAppKey     | String | 微博的appkey           | 3118377197                                |
+| wblink | String | 微博的链接地址 | https://.... |
 | rolelevel    | String | 角色等级，默认不用修改 | 6                                         |
-| tlink        | String | 腾讯的链接地址         | https://yjdzz.unoao.com/qq_conn/101860838 |
+| tlink        | String | 腾讯的链接地址         | https://.... |
 | tenchentId   | String | 腾讯的客户端id         | 101860838                                 |
 | pushAppid    | String | push的appid            | 1600005427                                |
 | pushAppkey   | String | push的appkey           | IIOMAQYO58GB                              |
@@ -247,6 +248,7 @@ SDK放在SDK文件夹内
 		<string>sinaweibo</string>
 		<string>weibosdk</string>
 		<string>weibosdk2.5</string>
+    <string>weibosdk3.3</string>
 	</array>
 ```
 
