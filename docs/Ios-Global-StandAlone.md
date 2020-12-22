@@ -131,52 +131,7 @@
 
 - 必须在application:didFinishLaunchingWithOptions方法中调用
 
-### 初始化方法一
-
-```objc
-  + (void) initSDK:(NSString*)gameid
-        setPromote:(NSString*)promote
-       application:(UIApplication *)application
-      didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-   appsFlyerDevKey:(NSString *)devKey
-        appleAppID:(NSString *)appID
-       GGkClientID:(NSString *)kClientID
-           Applede:(id) app;
-```
-
-**参数**
-
-| 参数名        | 参数类型      | 是否必需 | 示例                                                         | 描述           |
-| ------------- | ------------- | -------- | ------------------------------------------------------------ | -------------- |
-| gameid        | String        | 是       | 1662                                                         | 平台ID         |
-| promote       | String        | 是       | 17                                                           | 渠道ID         |
-| application   | UIApplication | 是       | application                                                  | 默认参数       |
-| launchOptions | NSDictionary  | 是       | launchOptions                                                | 默认参数       |
-| devKey        | String        | 是       | g7ZP9TqQ4S8AF9zeQD9Koe                                       | Appsflyer参数  |
-| appID         | String        | 是       | 1456212257                                                   | 苹果提审分配ID |
-| kClientID     | String        | 是       | 1011363304473-sa8a2igsc2ap7a7hpguv2if6jtmf902i.apps.googleusercontent.com | google参数     |
-| app           | AppDelegate   | 是       | self                                                         | 用于数据打点   |
-
-**示例**
-
-> 如果参数配置在给到的SDK的bundle中的infoset.plist，可以按照示例中的方法获取；如果不配置，直接在初始化接口中填入相应的值即可**
-
-```objc
--(BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions 
-    [wfnjiPlat 
-         initSDK : [wfnjiPlat getInfoString:@"gameid"] 
-         setPromote : [wfnjiPlat getInfoString:@"Promote"]
-         application : application
-         didFinishLaunchingWithOptions : launchOptions
-         appsFlyerDevKey : [wfnjiPlat getInfoString:@"appsFlyerDevKey"]
-         appleAppID : [wfnjiPlat getInfoString:@"appleAppID"]
-         GGkClientID : [wfnjiPlat getInfoString:@"GGkClientID"]
-         Applede:self];
-    return YES;
-}
-```
-
-### 初始化方法二
+### 初始化
 
 ```objc
 + (void) initSDKapplication:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions Applede:(id) app;
@@ -192,7 +147,7 @@
 
 **示例**
 
-> 使用初始化方法二，必须将参数配置在给到的SDK的bundle中的infoset.plist，详见SDK资源
+> 建议使用此初始化方法，必须将参数配置在给到的SDK的bundle中的infoset.plist，详见SDK资源
 
 ```objc
 -(BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions 
@@ -201,7 +156,7 @@
 }
 ```
 
-
+**v1.1.4 老版本初始化方法已废弃**
 
 ## SDK资源
 
@@ -267,6 +222,8 @@ Gm88的SDK使用通知来接收部分接口的结果，涉及的接口包括：
 - 分享
 - 变现广告
 - 翻译
+- 获取商品多语言列表
+- vip专属客服
 
 **定义**
 
@@ -563,6 +520,8 @@ mPayInfo.notifyURL = @"http://demo.wfnji88.com/ok.php?gameid=1156&promote=2";
 
 # 客服
 
+## 客服中心
+
 此接口为客服入口，客服包含联系邮箱和fb粉丝页等功能。
 
 **接口**
@@ -581,9 +540,9 @@ mPayInfo.notifyURL = @"http://demo.wfnji88.com/ok.php?gameid=1156&promote=2";
 
 
 
-# VIP专属客服
+## VIP专属客服
 
-## 判断是否可显示VIP专属客服
+### 判断是否可显示VIP专属客服
 
 - 此接口用于判断是否可以显示VIP专属客服（其结果在通知中返回）
 - 结果在通知中，通知名称为@"SDKCenterNotifition"，详见**SDK通知**
@@ -609,7 +568,7 @@ mPayInfo.notifyURL = @"http://demo.wfnji88.com/ok.php?gameid=1156&promote=2";
 | 13     | 不可显示VIP专属客服 |
 | 14     | 可显示VIP专属客服   |
 
-## VIP专属客服
+### VIP专属客服
 
 - 此接口用于显示VIP专属客服
 - 结果在通知中，通知名称为@"SDKCenterNotifition"，详见**SDK通知**
@@ -635,6 +594,24 @@ mPayInfo.notifyURL = @"http://demo.wfnji88.com/ok.php?gameid=1156&promote=2";
 | 13     | 不可显示VIP专属客服 |
 | 14     | 可显示VIP专属客服   |
 | 15     | 关闭VIP专属客服     |
+
+## 常见问题
+
+此接口用于显示常见问题列表
+
+```objc
++ (void)showFAQView;
+```
+
+**示例**
+
+```objc
+[wfnjiPlat showFAQView];
+```
+
+**响应**
+
+弹出常见问题列表页面。
 
 
 
@@ -919,4 +896,24 @@ didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken ;
 结果回调在通知中，会包含状态值，翻译后的文本，文本标识符。
 
 
+
+## 打开网页
+
+此接口用于在游戏内打开webview
+
+```objc
++ (void)showViewWithStr:(NSString *)str;
+```
+
+**参数**
+
+| 参数 | 类型   | 必须 | 说明                    |
+| ---- | ------ | ---- | ----------------------- |
+| str  | string | 是   | 链接，比如：https://... |
+
+**示例**
+
+```objc
+[wfnjiPlat showViewWithStr:@"https://www.baidu.com"];
+```
 
