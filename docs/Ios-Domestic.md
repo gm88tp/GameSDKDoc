@@ -500,13 +500,13 @@ SDK放在SDK文件夹内
 
 ###### 方法
 
-```objective-c
+```objectivec
 + (NSString *)remainingTime;
 ```
 
 ###### 示例
 
-```objective-c
+```objectivec
 NSString *str = [loginSDK remainingTime];
 //输出结果 str
 ```
@@ -527,13 +527,13 @@ NSString *str = [loginSDK remainingTime];
 
 ###### 方法
 
-```objective-c
+```objectivec
 + (NSString *)antiaddictionInfo;
 ```
 
 ###### 示例
 
-```objective-c
+```objectivec
 NSString *str = [loginSDK antiaddictionInfo];
 //输出结果 str
 ```
