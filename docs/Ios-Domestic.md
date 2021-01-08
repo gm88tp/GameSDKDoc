@@ -1,6 +1,6 @@
-## iOS_SDK_接入说明文档
+# iOS_SDK_接入说明文档
 
-#### 适用范围
+## 适用范围
 
 本文档适用于IOS 9.0及以上的操作系统。
 SDK放在SDK文件夹内
@@ -13,11 +13,11 @@ SDK放在SDK文件夹内
 
 [推送/接入文档](push.md)
 
-#### 接入流程
-
-### 更新日志
+## 更新日志
 
 自V3.8.3开始，loginSDK的头文件名称从wfnji开头更改为tenov开头。
+
+## 接入流程
 
 ### 准备
 
@@ -27,7 +27,7 @@ SDK放在SDK文件夹内
 将目录中的loginSDK.h,loginSDK.m (根据给到SDK添加).framework  和(根据给到SDK添加).bundle导入到您的工程中。
 ```
 
-#### 导入方法：在工程目录结构中，右键选择Add->Existing Files...，
+**导入方法：在工程目录结构中，右键选择Add->Existing Files...，**
 
 ```objectivec
 选择(根据给到SDK添加).framework, (根据给到SDK添加).bundle（或将文件拖入Xcode工程目录结构中）文件，在弹出的界面中勾选Copy items into destination group's folder(if needed)，并确保Add To Targets勾选相应target。
@@ -67,43 +67,41 @@ SDK放在SDK文件夹内
 
 #### AppDelegate导入头文件
 
-   引入头文件  `
+   引入头文件  
 
 ```objectivec
 #import "loginSDK.h"
 ```
 
-### 方法用途：
+### 初始化
 
 用于应用启动后，初始SDK。
 
-###### 使用地方
+**使用地方**
 
 在-(**BOOL**)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions方法中调用
-
-##### 方法1
 
 | 参数名   | 类型 | 必需 | 示例 | 说明     |
 | :------- | :--- | ---- | ---- | -------- |
 | delegate | id   | 是   | self | 对象传递 |
 
-###### 方法
+**方法**
 
 ```objectivec
 + (void)initDelegate:(  id )delegate;
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
 [loginSDK  initDelegate: self ];
 ```
 
-## 方法用途：
+### 进入后台
 
 记录应用进入后台
 
-###### 使用地方
+**使用地方**
 
 在-(void)applicationDidEnterBackground:(UIApplication *)application方法中调用
 
@@ -111,23 +109,23 @@ SDK放在SDK文件夹内
 | ----------- | ------------- | ---- | ----------- | ---- |
 | application | UIApplication | 是   | application | 默认 |
 
-###### 方法
+**方法**
 
 ```objectivec
 +(void)applicationDidEnterBackground:(UIApplication *)application
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
  [loginSDk applicationDidEnterBackground:application];
 ```
 
-## 方法用途：
+### 进入前台
 
 记录应用进入前台
 
-###### 使用地方
+**使用地方**
 
 在- (void)applicationWillEnterForeground:(UIApplication *)application方法中调用
 
@@ -135,56 +133,56 @@ SDK放在SDK文件夹内
 | ----------- | ------------- | ---- | ----------- | ---- |
 | application | UIApplication | 是   | application | 默认 |
 
-###### 方法
+**方法**
 
 ```objectivec
 +(void)applicationDidEnterBackground:(UIApplication *)application
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
  [loginSDK applicationWillEnterForeground:application];
 
 ```
 
-##方法用途：
+###方法用途：
 
 分享回调
 
-###### 使用地方
+**使用地方**
 
 在-(BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options方法中调用
 
-###### 方法
+**方法**
 
 ```objectivec
 +(BOOL)shareApplication:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options;
 
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
  [loginSDK shareApplication:app openURL:url options:options];
 
 ```
 
-## 方法用途：
+### 即将终止
 
 即将杀死进程，用于计算时长
 
-###### 使用地方
+**使用地方**
 
 在\- (void)applicationWillTerminate:(UIApplication *)application方法总调用
 
-###### 方法
+**方法**
 
 ```objectivec
 + (void)applicationWillTerminate:(UIApplication *)application;
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
 [loginSDK applicationWillTerminate:application];
@@ -302,38 +300,19 @@ SDK放在SDK文件夹内
 
 ### 代理《重要》
 
-###### 引入头文件
+#### 引入头文件
 
 ```objectivec
 #import "loginSDK.h"
 ```
 
-###### 协议名
+#### 协议名
 
 ```objectivec
 <tenovLoginCallBack,tenovPurchaseCallBack>
 ```
 
-###### 用户登录
-
-登录返回的传递数据
-退出返回的传递数据
-
-###### 方法：
-
-```objectivec
-+ (void) login:(id<tenovLoginCallBack>)mLoginCallBack;
-
-```
-
-###### 示例：
-
-```objectivec
-[loginSDK login:self];
-
-```
-
-###### 代理方法
+#### 代理方法
 
 ```objectivec
 -(void)onFinish:(tenovStatus)code   Data:(NSDictionary*)Data
@@ -342,12 +321,12 @@ SDK放在SDK文件夹内
     NSLog(@"回调：%@",Data);
 
     if(code==LOGIN_SUCCESS){
-
+      //登录成功，回调用户信息
     }else if(code== LOGOUT_SUCCESS){
       //需要调用主动调用登录
 
     }else if(code== LOGIN_SWITCH){
-
+      //不需要调用主动调用登录
     } else if (code ==PAY_SUCCESS){
 
       //"支付成功"
@@ -367,23 +346,44 @@ SDK放在SDK文件夹内
 }
 ```
 
+### 
+
+### 用户登录
+
+登录返回的传递数据
+退出返回的传递数据
+
+**方法**
+
+```objectivec
++ (void) login:(id<tenovLoginCallBack>)mLoginCallBack;
+
+```
+
+**示例**
+
+```objectivec
+[loginSDK login:self];
+
+```
+
 ### 用户退出
 
-方法：    
+**方法**
 
 ```objectivec
   + (void)logOut;
 ```
 
-代码：
+**示例**
 
 ```objectivec
 [loginSDK logOut];
 ```
 
-# 支付方法调起
+### 支付
 
-### model参数
+**model参数**
 
 | 参数名       | 类型   | 必需   | 说明                                                         |
 | ------------ | ------ | ------ | ------------------------------------------------------------ |
@@ -401,14 +401,14 @@ SDK放在SDK文件夹内
 | text         | string | string | 否                                                           |
 | notifyURL    | string | 否     | 回调地址 可传可不传，不传使用默认                            |
 
-###### 方法：
+**方法**
 
 ```objectivec
 + (void) tenovpay:(tenovOrderModel *)payInfo CallBack:(id<tenovPayCallBack>) callBack
 
 ```
 
-###### 示例：
+**示例**
 
 ```objectivec
     
@@ -433,7 +433,7 @@ SDK放在SDK文件夹内
 
 ### 数据打点方法
 
-### 角色创建，新手引导，升级# 
+### 角色创建，新手引导，升级
 
 | 参数名  | 类型   | 必需 | 说明                                 |
 | ------- | ------ | ---- | ------------------------------------ |
@@ -443,7 +443,7 @@ SDK放在SDK文件夹内
 | roleID  | string | 是   | 角色ID                               |
 | status  | string | 是   | 1:创建角色 2:完成新手引导 3:等级升级 |
 
-###### 方法
+**方法**
 
 ```objectivec
 + (void)setGameRoleName:(NSString *)name
@@ -453,26 +453,26 @@ SDK放在SDK文件夹内
                status:(NSString *)status;
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
  [loginSDK setGameRoleName:@"名字" gameLevel:@"等级" serverID:@"区服ID" roleID:@"角色ID" status:@"2"];
 ```
 
-## 通用打点方法
+### 通用打点方法
 
 | 参数名    | 类型         | 必需 | 说明     |
 | --------- | ------------ | ---- | -------- |
 | eventName | string       | 是   | 事件名   |
 | info      | NSDictionary | 否   | 下级参数 |
 
-###### 方法
+**方法**
 
 ```objectivec
 + (void)LogInfo:(NSString *)eventName EventDic:(NSDictionary *)info
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
  [loginSDK LogInfo:@"事件名" EventDic:@{}];
@@ -480,31 +480,31 @@ SDK放在SDK文件夹内
 
 ### 返回设备号
 
-###### 方法
+**方法**
 
 ```objectivec
 + (NSString *) returnIDFV 
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
 [loginSDK returnIDFV];
 ```
 
-## 防沉迷
+### 防沉迷
 
 ### 剩余时长
 
 返回剩余时长，-1表示没有开启防沉迷；18岁（包含18岁）以上均返回0；如有需要可以结合用户年龄接口返回做相应处理;返回数值单位是秒。
 
-###### 方法
+**方法**
 
 ```objectivec
 + (NSString *)remainingTime;
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
 NSString *str = [loginSDK remainingTime];
@@ -525,13 +525,13 @@ NSString *str = [loginSDK remainingTime];
 *  4、16-18（包含16岁，不包含18岁）；
 *  5、18岁以上（包含18）；
 
-###### 方法
+**方法**
 
 ```objectivec
 + (NSString *)antiaddictionInfo;
 ```
 
-###### 示例
+**示例**
 
 ```objectivec
 NSString *str = [loginSDK antiaddictionInfo];
