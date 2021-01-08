@@ -49,7 +49,7 @@ public class MyApplication extends Application {
 
 2. 第二步需要在游戏主 Activity 的onCreate()方法内设置回调函数，否则游戏将收不到任何回调信息（登陆成功,登陆失败,支付成功,支付失败等...）
    
-   ```java
+```java
         GM.setListener(new GmListener() {
             @Override
             public void onCallBack(Message mMessage) {
@@ -134,7 +134,7 @@ public class MyApplication extends Application {
 
 3. 第三步需要在游戏主 Activity 的 onCreate 方法内进行初始化(如上面代码所示)
    
-   ```java
+```java
    GM.init(this);
    ```
 
