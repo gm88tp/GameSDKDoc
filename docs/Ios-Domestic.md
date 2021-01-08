@@ -1,4 +1,4 @@
-## IOS_SDK_接入说明文档说明
+## iOS_SDK_接入说明文档
 
 #### 适用范围
 
@@ -14,6 +14,10 @@ SDK放在SDK文件夹内
 [推送/接入文档](push.md)
 
 #### 接入流程
+
+### 更新日志
+
+自V3.8.3开始，loginSDK的头文件名称从wfnji开头更改为tenov开头。
 
 ### 准备
 
@@ -42,20 +46,20 @@ SDK放在SDK文件夹内
 * 使用给到的loginSDK.h和loginSDK.m，可以使用此文档所有书写的接口。
 * 相关参数需要填写在给到的.bundle的infoset.plist中，详见下表所示，所有参数的注释。
 
-| 参数         | 类型   | 描述                   | 示例                                      |
-| ------------ | ------ | ---------------------- | ----------------------------------------- |
-| channel      | String | 渠道id，默认不用修改   | 121                                       |
-| gameid       | String | 游戏ID                 | 1156                                      |
-| trackKey     | String | 热云数据统计的key          | b17e8a65fd93353c00349ee3a2a565b8          |
-| weichatAppid | String | 微信的appid            | wx180c8f3360de0b12                        |
-| wlink        | String | 微信的链接地址         | https://...      |
-| wbAppKey     | String | 微博的appkey           | 3118377197                                |
-| wblink | String | 微博的链接地址 | https://.... |
-| rolelevel    | String | 角色等级，默认不用修改 | 6                                         |
-| tlink        | String | 腾讯的链接地址         | https://.... |
-| tenchentId   | String | 腾讯的客户端id         | 101860838                                 |
-| pushAppid    | String | push的appid            | 1600005427                                |
-| pushAppkey   | String | push的appkey           | IIOMAQYO58GB                              |
+| 参数         | 类型   | 描述                   | 示例                             |
+| ------------ | ------ | ---------------------- | -------------------------------- |
+| channel      | String | 渠道id，默认不用修改   | 121                              |
+| gameid       | String | 游戏ID                 | 1156                             |
+| trackKey     | String | 热云数据统计的key      | b17e8a65fd93353c00349ee3a2a565b8 |
+| weichatAppid | String | 微信的appid            | wx180c8f3360de0b12               |
+| wlink        | String | 微信的链接地址         | https://......                   |
+| wbAppKey     | String | 微博的appkey           | 3118377197                       |
+| wblink       | String | 微博的链接地址         | https://......                   |
+| rolelevel    | String | 角色等级，默认不用修改 | 6                                |
+| tlink        | String | 腾讯的链接地址         | https://......                   |
+| tenchentId   | String | 腾讯的客户端id         | 101860838                        |
+| pushAppid    | String | push的appid            | 1600005427                       |
+| pushAppkey   | String | push的appkey           | IIOMAQYO58GB                     |
 
 注：按照需要接入的功能模块接入，修改相关的参数。
 
@@ -92,7 +96,7 @@ SDK放在SDK文件夹内
 ###### 示例
 
 ```objectivec
-    [loginSDK  initDelegate: self ];
+[loginSDK  initDelegate: self ];
 ```
 
 ## 方法用途：
@@ -116,7 +120,7 @@ SDK放在SDK文件夹内
 ###### 示例
 
 ```objectivec
- [loginSDk applicationDidEnterBackground:application]
+ [loginSDk applicationDidEnterBackground:application];
 ```
 
 ## 方法用途：
@@ -144,7 +148,7 @@ SDK放在SDK文件夹内
 
 ```
 
-方法用途：
+##方法用途：
 
 分享回调
 
@@ -162,9 +166,31 @@ SDK放在SDK文件夹内
 ###### 示例
 
 ```objectivec
-  [loginSDK shareApplication:app openURL:url options:options];
+ [loginSDK shareApplication:app openURL:url options:options];
 
 ```
+
+## 方法用途：
+
+即将杀死进程，用于计算时长
+
+###### 使用地方
+
+在\- (void)applicationWillTerminate:(UIApplication *)application方法总调用
+
+###### 方法
+
+```objective-c
++ (void)applicationWillTerminate:(UIApplication *)application;
+```
+
+###### 示例
+
+```objective-c
+[loginSDK applicationWillTerminate:application];
+```
+
+
 
 ### 项目info.plist 配置
 
@@ -175,6 +201,10 @@ SDK放在SDK文件夹内
 	<string>客服功能需要麦克风权限</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>使用相册功能为你存储账号密码</string>
+  
+  //不接入广告SDK，此权限可不申请
+  <key>NSUserTrackingUsageDescription</key>
+	<string>该标识符将用于向您投放个性化广告</string>
 
 ```
 
@@ -252,6 +282,22 @@ SDK放在SDK文件夹内
 	</array>
 ```
 
+如果使用了广告SDK，需要配置如下
+
+```css
+  <key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>238da6jt44.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>22mmun2rn5.skadnetwork</string>
+		</dict>
+	</array>
+```
+
 
 
 ### 代理《重要》
@@ -265,7 +311,7 @@ SDK放在SDK文件夹内
 ###### 协议名
 
 ```objectivec
-<wfnjiLoginCallBack,wfnjiPurchaseCallBack>
+<tenovLoginCallBack,tenovPurchaseCallBack>
 ```
 
 ###### 用户登录
@@ -276,7 +322,7 @@ SDK放在SDK文件夹内
 ###### 方法：
 
 ```objectivec
-+ (void) login:(id<wfnjiLoginCallBack>)mLoginCallBack;
++ (void) login:(id<tenovLoginCallBack>)mLoginCallBack;
 
 ```
 
@@ -290,7 +336,7 @@ SDK放在SDK文件夹内
 ###### 代理方法
 
 ```objectivec
--(void)onFinish:(wfnjiStatus)code   Data:(NSDictionary*)Data
+-(void)onFinish:(tenovStatus)code   Data:(NSDictionary*)Data
 {
     NSLog(@"回调状态值：%ld",(long)code);
     NSLog(@"回调：%@",Data);
@@ -304,18 +350,18 @@ SDK放在SDK文件夹内
 
     } else if (code ==PAY_SUCCESS){
 
-      [self setPromot:@"支付成功"];
+      //"支付成功"
 
     } else if (code== PAY_FAILED){
 
-       [self setPromot:@"支付失败"];
+       //"支付失败"
 
     }else if (code==PAY_CANCEL){
 
-       [self setPromot:@"支付取消"];   
+       //"支付取消"   
     }else if (code==PAY_UNKNOWN){
 
-      [self setPromot:@"支付未知"];
+      //"支付未知"
 
     } 
 }
@@ -358,7 +404,7 @@ SDK放在SDK文件夹内
 ###### 方法：
 
 ```objectivec
-+ (void) wfnjipay:(wfnjiOrderModel *)payInfo CallBack:(id<wfnjiPayCallBack>) callBack
++ (void) tenovpay:(tenovOrderModel *)payInfo CallBack:(id<tenovPayCallBack>) callBack
 
 ```
 
@@ -366,7 +412,7 @@ SDK放在SDK文件夹内
 
 ```objectivec
     
-    wfnjiOrderModel* mPayInfo = [[wfnjiOrderModel alloc] init];
+    tenovOrderModel* mPayInfo = [[tenovOrderModel alloc] init];
     mPayInfo.productID=payID;
     mPayInfo.productName=payName;
     mPayInfo.productPrice=price;
@@ -380,8 +426,8 @@ SDK放在SDK文件夹内
     mPayInfo.zoneID=@"";
     mPayInfo.zoneName=@"";
     mPayInfo.text=@"";
-    mPayInfo.notifyURL = @"http://demo.wfnji88.com/ok.php?gameid=1156&promote=2";
-    [loginSDK wfnjipay:mPayInfo CallBack:self];
+    mPayInfo.notifyURL = @"http://demo.tenov88.com/ok.php?gameid=1156&promote=2";
+    [loginSDK tenovpay:mPayInfo CallBack:self];
 
 ```
 
@@ -440,8 +486,55 @@ SDK放在SDK文件夹内
 + (NSString *) returnIDFV 
 ```
 
-示例
+###### 示例
 
 ```objectivec
 [loginSDK returnIDFV];
 ```
+
+## 防沉迷
+
+### 剩余时长
+
+返回剩余时长，-1表示没有开启防沉迷；18岁（包含18岁）以上均返回0；如有需要可以结合用户年龄接口返回做相应处理;返回数值单位是秒。
+
+###### 方法
+
+```objective-c
++ (NSString *)remainingTime;
+```
+
+###### 示例
+
+```objective-c
+NSString *str = [loginSDK remainingTime];
+//输出结果 str
+```
+
+
+
+### 用户年龄
+
+返回用户年龄。
+
+返回数值：
+
+* 1、 未实名；
+*  2、8岁以下（不包含8岁）；
+*  3、8-16（包含8岁，不包含16岁）；
+*  4、16-18（包含16岁，不包含18岁）；
+*  5、18岁以上（包含18）；
+
+###### 方法
+
+```objective-c
++ (NSString *)antiaddictionInfo;
+```
+
+###### 示例
+
+```objective-c
+NSString *str = [loginSDK antiaddictionInfo];
+//输出结果 str
+```
+

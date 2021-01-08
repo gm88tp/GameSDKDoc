@@ -22,7 +22,7 @@
 
 | 参数   | 必填 | 类型   | 描述             |
 | ------ | ---- | ------ | ---------------- |
-| action | Y    | String | 填写：user.info  |
+| action | Y    | String | 填写：user.check_token  |
 | token  | Y    | String | Gm88用户登录凭证 |
 
 * 返回参数
