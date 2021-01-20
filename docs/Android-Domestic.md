@@ -22,6 +22,8 @@
 
 8. targetSdkVersion 设置成22及以上(最高可支持到28)
 
+9. resource/addition 下的zip文件为选接功能相关的接入文档、demo，正常情况下可以不进行接入，如有相关功能需求再进行接入。相关SDK均为独立SDK，接入时不会影响已接入的主体SDK。
+
 ## SDK 接入相关
 
 怪猫 SDK 开放接口，对外提供的接口方法都是静态的，直接通过 GM 进行调用即可。
@@ -29,6 +31,7 @@
 ### 接入 SDK 基本顺序
 
 1. 第一步需要在 Application 的对应方法内进行初始化
+
 ```java
 public class MyApplication extends Application {
 
@@ -47,6 +50,7 @@ public class MyApplication extends Application {
 ```
 
 2. 第二步需要在游戏主 Activity 的onCreate()方法内设置回调函数，否则游戏将收不到任何回调信息（登陆成功,登陆失败,支付成功,支付失败等...）
+   
    ```java
         GM.setListener(new GmListener() {
             @Override
@@ -131,6 +135,7 @@ public class MyApplication extends Application {
    ```
 
 3. 第三步需要在游戏主 Activity 的 onCreate 方法内进行初始化(如上面代码所示)
+   
    ```java
    GM.init(this);
    ```
@@ -349,3 +354,14 @@ GM.getPlayTimeLeft()
 
 当GM.getPlayTimeLeft()接口返回为Integer.MAX_VALUE时，用户已成年无游玩时间限制，返回为Integer.MIN_VALUE时为我方后台未开启实名游玩限制，其余返回为用户剩余游玩分钟，详情可参考demo
 
+### 广告相关（选接）
+
+
+广告相关接入流程说明：
+广告相关为选接SDK，如游戏或我方运营有相关需求可以选择接入，如无要求可不接入，广告SDK为独立SDK，接入时不会影响已接入的主体SDK。相关文档、demo见resource/addition下的广告SDK.zip，接入时如果遇到已使用的jar文件或so库等，无需重复引入
+
+### 分享相关（选接）
+
+
+分享相关接入流程说明：
+分享相关为选接SDK，如游戏或我方运营有相关需求可以选择接入，如无要求可不接入，分享SDK为独立SDK，接入时不会影响已接入的主体SDK。相关文档、demo见resource/addition下的分享SDK.zip，接入时如果遇到已使用的jar文件或so库等，无需重复引入
