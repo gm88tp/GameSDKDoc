@@ -464,6 +464,52 @@ mPayInfo.notifyURL = @"http://demo.wfnji88.com/ok.php?gameid=1156&promote=2";
 | 2      | 分享失败 |
 | 3      | 分享成功 |
 
+## 分享
+
+- 此接口用于接入分享
+- 分享的结果在通知中，通知名称为@"SDKCenterNotifition"，详见**SDK通知**
+
+```objc
+/**
+ 分享使用的方法
+ 
+ @param text 分享文本
+ @param image 图片列表，可以传空，传一张
+ @param link 分享链接
+ @param type 分享类型：1 引文分享（链接），2 图片分享,3 使用SDK后台配置分享
+ @param info SDK后台配置分享，需要传入参数格式如下：
+            @{@"shareName":@"分享名称",
+                @"shareID":@"分享ID",
+             @"shareUName":@"角色名",
+            @"shareServer":@"角色区服",
+              @"shareCode":@"角色code"
+ 
+             }
+ */
++ (void)shareInfo:(NSString *)text image:(UIImage *)image link:(NSString *)link type:(NSString *)type otherInfo:(NSDictionary *)info;
+
+```
+
+**示例**
+
+> 相关参数如有不清楚，请与相关人员联系
+
+```objc
+[wfnjiPlat shareInfo:@"分享测试" image:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"backgroudImage" ofType:@"png"]] link:@"https://www.baidu.com" type:@"2" otherInfo:@{}];
+
+```
+
+**响应**
+
+使用通知来接收回调，请参考[通知](#定义通知)
+
+| 状态值 | 含义     |
+| ------ | -------- |
+| 2      | 分享失败 |
+| 3      | 分享成功 |
+
+
+
 # 广告
 
 ## 设置广告次数接口（此接口只针对于激励视频）

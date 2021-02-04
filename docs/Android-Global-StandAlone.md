@@ -1,4 +1,4 @@
-# GM88 Android海外游戏1.1.4版本单机SDK 对接文档
+# GM88 Android海外游戏1.2.0版本单机SDK 对接文档 2021/02/04
 
 
 ***请注意：demo内的所有参数均是为了方便展示，接入时请使用运营提供的参数进行接入***
@@ -27,7 +27,7 @@
 ```
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation(name: 'Offlinesdk_1.1.4', ext: 'aar')
+    implementation(name: 'Offlinesdk_1.2.0', ext: 'aar')
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     // Required -- JUnit 4 framework
     testImplementation 'junit:junit:4.12'
@@ -161,33 +161,35 @@ allprojects {
 
 ### 清单文件内容添加
 
-添加Demo内的清单文件内容到游戏Manifest内，并修改To-do标签内的相关value，具体value值运营会提供
+添加Demo内的清单文件内容到游戏Manifest内，并修改To-do标签内的相关value，具体value值运营会提供，FacebookContentProvider下{facebook_app_id}替换为facebook_app_id参数，并去掉括号；AdMob应用ID下的{AdMob_cpkey}替换为Google Admob cpkey并去掉括号
+
 ```
-<meta-data
-    android:name="com.facebook.sdk.ApplicationId"
-    android:value="@string/facebook_app_id" />
-<!--todo  facebook广告参数-->
-<provider
-    android:name="com.facebook.FacebookContentProvider"
-    android:authorities="com.facebook.app.FacebookContentProvider436121163675645"
-    android:exported="true" />
-<activity
-    android:name="com.facebook.CustomTabActivity"
-    android:exported="true">
-</activity>
+    <meta-data
+        android:name="com.facebook.sdk.ApplicationId"
+        android:value="@string/facebook_app_id" />
+    <!--todo  facebook广告参数-->
+    <provider
+        android:name="com.facebook.FacebookContentProvider"
+        android:authorities="com.facebook.app.FacebookContentProvider{facebook_app_id}"
+        android:exported="true" />
+    <activity
+        android:name="com.facebook.CustomTabActivity"
+        android:exported="true">
+    </activity>
 
-<receiver
-    android:name="com.appsflyer.SingleInstallBroadcastReceiver"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="com.android.vending.INSTALL_REFERRER" />
-    </intent-filter>
-</receiver>
+    <receiver
+        android:name="com.appsflyer.SingleInstallBroadcastReceiver"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="com.android.vending.INSTALL_REFERRER" />
+        </intent-filter>
+    </receiver>
 
-<!--todo  广告参数 AdMob应用ID-->
-<meta-data
-    android:name="com.google.android.gms.ads.APPLICATION_ID"
-    android:value="ca-app-pub-7496069579613989~1013034939" />
+    <!--todo  广告参数 AdMob应用ID-->
+    <meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="{AdMob_cpkey}" />
+```roid:value="ca-app-pub-7496069579613989~1013034939" />
 ```
 
 在application节点内添加：
@@ -389,24 +391,30 @@ GMSDK.doSpot(spotJson.toString())
 ```
 
 ### 3.6发起分享接口
-当游戏需要拉起分享的时候，应调用此接口
+
+SDK分享接口有三种选择，可从GM后台分享，或直接传入链接或图片进行分享。
+
+#### 3.6.1 GM后台分享
+
+当游戏需要拉起分享的时候，想从GM后台读取内容分享时，应调用此接口
 接口定义：
+
 ```
-GMSDK.share(String shareInfo)
+GMSDK.share(String shareInfo);
 ```
 
 **shareInfo 示例**
 
-| 字段        | 类型     | 说明               |
-| --------- | ------ | ---------------- |
-| shareID   | int    | 分享内容Id(运营提供)   |
-| shareName | string | 分享内容Name(运营提供) |
-| uName     | string | 分享者游戏名           |
-| server    | string | 分享者所在区服          |
-| code      | string | 邀请码(可供接受分享者使用等)  |
-
+| 字段        | 类型     | 说明              |
+| --------- | ------ | --------------- |
+| shareID   | int    | 分享内容Id(运营提供)    |
+| shareName | string | 分享内容Name(运营提供)  |
+| uName     | string | 分享者游戏名          |
+| server    | string | 分享者所在区服         |
+| code      | string | 邀请码(可供接受分享者使用等) |
 
 调用示例：
+
 ```
 JSONObject shareinfo = new JSONObject();
 try {
@@ -420,6 +428,41 @@ try {
 }
 GMSDK.doShare(shareinfo.toString());
 ```
+
+#### 3.6.2 直接分享（链接形式）
+
+当游戏需要拉起分享的时候，想直接分享链接时，应调用此接口，现阶段此接口支持分享到Facebook和Twitter
+接口定义：
+
+```
+GMSDK.doCPShareLink(String title, String content, String link);
+```
+
+** 传入参数示例**
+
+| 字段        | 类型     | 说明              |
+| --------- | ------ | --------------- |
+| title | string | 分享标题  |
+| content     | string | 分享内容          |
+| link    | string | 分享链接         |
+
+
+#### 3.6.3 直接分享（图片形式）
+
+当游戏需要拉起分享的时候，想直接分享图片时，应调用此接口，现阶段此接口支持分享到Facebook
+接口定义：
+
+```
+GMSDK.doCPShareImage(String title, String content, String photoUrl);
+```
+
+** 传入参数示例**
+
+| 字段        | 类型     | 说明              |
+| --------- | ------ | --------------- |
+| title | string | 分享标题  |
+| content     | string | 分享内容          |
+| photoUrl    | string | 分享图片url         |
 
 ### 3.7调起广告接口
 当游戏需要拉起广告的时候，应调用此接口
