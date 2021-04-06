@@ -25,6 +25,11 @@
 git submodule update --remote
 ```
 
+复制文档到输出目录
+```bash
+./sync-doc.sh
+```
+
 提交
 ```bash
 git commit -m 'message'

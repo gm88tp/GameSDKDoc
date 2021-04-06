@@ -1,5 +1,6 @@
 # 怪猫海外接入文档
 
+## **接口列表** 
 ### **一、**  **登录验证接口**
 
 由商户发起
@@ -41,8 +42,6 @@ POST
 <div style="page-break-after: always;"></div>
 
 
-
-
 ### **二、** **支付异步通知**
 
 这是⽤用户⽀支付完成之后，怪猫方确认用户已经付款完成时，发起的异步支付成功通知，CP方应有后端程序接收此请求，并在接收到此通知后，在游戏内向⽤用户发货，并返回正确的响应，以便怪猫后端知晓发货成功。
@@ -64,8 +63,6 @@ POST
 | coin          | float  | Y|订单金额，单位：元            |
 | signature     | string | N|签名字段                      |
 | status | string |N| ORDER_ACCEPTED 支付成功；<br />ORDER_REFUNDED 已退款；<br />默认为 ORDER_ACCEPTED |
-
- 
 
 **signature签名**
 
@@ -132,3 +129,56 @@ signature = md5(action=verify&game_id=xxx&order_id=xxx&appSecret)
 }
 
 ```
+<div style="page-break-after: always;"></div>
+
+
+### **四、** **预注册异步通知**
+
+这是用户预注册之后，怪猫方发起的异步通知，CP方应有后端程序接收此请求，并在接收到此通知后，在游戏内向用户发货，并返回正确的响应，以便怪猫后端知晓发放成功。
+
+异步通知 
+
+**请求类型：**
+
+POST
+
+**回调参数**
+
+| 字段      | 类型   | 参与签名   | 说明                          |
+| ------------- | ----------| ---------- | --------------------------------- |
+| openid     | string | 用户唯一ID                             ||
+| server_id    | int    | 区服ID                                ||
+| role_id      | int    | 角色ID    ||
+| product_id | string | product_id道具ID ||
+| signature     | string | 签名字段                              ||
+| extra | string | 透传参数，不参与签名 ||
+
+**signature签名**
+
+* 将以上字段连接,再加上app私钥,最后计算md5值。如
+
+```
+signature = md5(openid_id=xxx&server_id=xxx&role_id=xxx&product=xxx&appSecret)
+```
+
+**加密示例(PHP)**
+
+```php
+$appSecret = 'nHxJ8D8YkbZmYfTE';
+
+$data = array(
+    'openid' => 'b34d8ba386b95d96f4f9337cafd0616b',
+    'server_id' => '1',
+    'role_id' => '110001042305',
+    'product_id' => '11001',
+    'signature' => 'e96a7e4f7373adb8a39bd5a4ed3084e6',
+    'extra' => '{"server_index":"1","server_name":"一服"}'
+);
+
+$perstr = 'openid=b34d8ba386b95d96f4f9337cafd0616b&server_id=1&role_id=110001042305&product_id=11001&nHxJ8D8YkbZmYfTE';
+
+$signature = md5($perstr); // e96a7e4f7373adb8a39bd5a4ed3084e6
+```
+
+CP收到请求后，应进行发货操作，在发货成功后返回“ok“(字符串)，表示已经接收支付结果，如未收到ok，系统会每隔5分钟发起一次通知，如果发货是异步的，可以返回"ok"，但请保证后续发货一定成功。
+
