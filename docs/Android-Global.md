@@ -1,4 +1,4 @@
-# GM88 Android海外游戏1.4.1版本SDK 对接文档 2021/04/02
+# GM88 Android海外游戏1.4.3版本SDK 对接文档 2021/07/01
 
 ***请注意：demo内的所有参数均是为了方便展示，接入时请使用运营提供的参数进行接入，在SDK1.4.0版本后横屏、竖屏的界面会有所不同，请接入出包时锁定横竖屏***
 
@@ -27,72 +27,74 @@
 引入以下依赖：
 
 ```
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation(name: 'Globalsdk_1.4.1', ext: 'aar')
-    implementation(name: 'cafeSdk-4.4.1', ext: 'aar')
-    implementation(name: 'sos_library-1.1.3.4', ext: 'aar')
-    implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    // Required -- JUnit 4 framework
-    testImplementation 'junit:junit:4.12'
-    // Optional -- Mockito framework（可选，用于模拟一些依赖对象，以达到隔离依赖的效果）
-    testImplementation 'org.mockito:mockito-core:2.19.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test:rules:1.2.0'
-    api 'com.google.gms:google-services:4.3.5'
-    api 'com.google.android.gms:play-services-analytics:17.0.0'
-    api 'com.google.android.gms:play-services-auth:17.0.0'
-    api 'com.facebook.android:facebook-android-sdk:8.1.0'
-    api 'org.apache.httpcomponents:httpcore:4.4.10'
-    api 'com.google.android.gms:play-services-ads:19.0.0'
-    implementation 'com.google.ads.mediation:applovin:9.11.2.0'
-    implementation 'com.google.ads.mediation:facebook:5.8.0.0'
-    implementation 'com.google.ads.mediation:unity:3.4.2.0'
-    implementation 'com.google.ads.mediation:ironsource:6.14.0.0'
-    implementation 'com.google.ads.mediation:vungle:6.7.0.0'
-    implementation 'com.google.android.play:core:1.8.0'
-    api 'androidx.multidex:multidex:2.0.1'
-    //noinspection GradleCompatible
-    api 'androidx.recyclerview:recyclerview:1.1.0'
-    // Required Dependency by Audience Network SDK
-    api 'com.facebook.android:audience-network-sdk:5.6.0'
-    api 'com.alibaba:fastjson:1.1.70.android'
-    //firebase
-    // Add dependency crashlytics
-    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
-    implementation 'com.google.firebase:firebase-analytics:17.6.0'
-    // Check for v11.4.2 or higher
-    implementation 'com.google.firebase:firebase-core:17.2.0'
-    // (Recommended) Add Analytics
-    implementation platform('com.google.firebase:firebase-bom:25.12.0')
-    api 'androidx.appcompat:appcompat:1.1.0'
-    api 'androidx.annotation:annotation:1.1.0'
-    api 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
-    api 'androidx.legacy:legacy-support-v4:1.0.0'
-    api 'androidx.core:core:1.2.0'
-    api 'com.google.firebase:firebase-core:17.2.3'
-    api 'com.google.firebase:firebase-iid:20.1.0'
-    api 'android.arch.work:work-runtime:1.0.1'
-    api 'com.google.firebase:firebase-messaging:20.1.2'
-    api 'com.google.guava:guava:28.0-jre'
-    api 'androidx.constraintlayout:constraintlayout:1.1.3'
-    // Add the dependency for the Performance Monitoring library
-    api 'com.google.firebase:firebase-perf:19.0.5'
-    //Dynamic-links
-    api 'com.google.firebase:firebase-dynamic-links:19.1.0'
-    api 'com.google.firebase:firebase-analytics:17.2.3'
-    implementation 'com.braintreepayments.api:braintree:2.+'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.0'
-    //谷歌支付
-    implementation 'com.android.billingclient:billing:3.0.3'
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
+        implementation(name: 'Globalsdk_1.4.3', ext: 'aar')
+        implementation(name: 'cafeSdk-4.4.1', ext: 'aar')
+        implementation(name: 'sos_library-1.1.3.4', ext: 'aar')
+        implementation 'androidx.appcompat:appcompat:1.0.0'
+        implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+        // Required -- JUnit 4 framework
+        testImplementation 'junit:junit:4.12'
+        // Optional -- Mockito framework（可选，用于模拟一些依赖对象，以达到隔离依赖的效果）
+        testImplementation 'org.mockito:mockito-core:2.19.0'
+        androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+        androidTestImplementation 'androidx.test:runner:1.2.0'
+        androidTestImplementation 'androidx.test:rules:1.2.0'
+        api 'com.google.gms:google-services:4.3.5'
+        api 'com.google.android.gms:play-services-analytics:17.0.0'
+        api 'com.google.android.gms:play-services-auth:17.0.0'
+        api 'com.facebook.android:facebook-android-sdk:8.1.0'
+        api 'org.apache.httpcomponents:httpcore:4.4.10'
+        api 'com.google.android.gms:play-services-ads:19.0.0'
+        implementation 'com.google.ads.mediation:applovin:9.11.2.0'
+        implementation 'com.google.ads.mediation:facebook:5.8.0.0'
+        implementation 'com.google.ads.mediation:unity:3.4.2.0'
+        implementation 'com.google.ads.mediation:ironsource:6.14.0.0'
+        implementation 'com.google.ads.mediation:vungle:6.7.0.0'
+        implementation 'com.google.android.play:core:1.8.0'
+        api 'androidx.multidex:multidex:2.0.1'
+        //noinspection GradleCompatible
+        api 'androidx.recyclerview:recyclerview:1.1.0'
+        // Required Dependency by Audience Network SDK
+        api 'com.facebook.android:audience-network-sdk:5.6.0'
+        api 'com.alibaba:fastjson:1.1.70.android'
+        //firebase
+        // Add dependency crashlytics
+        implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
+        implementation 'com.google.firebase:firebase-analytics:17.6.0'
+        // Check for v11.4.2 or higher
+        implementation 'com.google.firebase:firebase-core:17.2.0'
+        // (Recommended) Add Analytics
+        implementation platform('com.google.firebase:firebase-bom:25.12.0')
+        api 'androidx.appcompat:appcompat:1.1.0'
+        api 'androidx.annotation:annotation:1.1.0'
+        api 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
+        api 'androidx.legacy:legacy-support-v4:1.0.0'
+        api 'androidx.core:core:1.2.0'
+        api 'com.google.firebase:firebase-core:17.2.3'
+        api 'com.google.firebase:firebase-iid:20.1.0'
+        api 'android.arch.work:work-runtime:1.0.1'
+        api 'com.google.firebase:firebase-messaging:20.1.2'
+        api 'com.google.guava:guava:28.0-jre'
+        api 'androidx.constraintlayout:constraintlayout:1.1.3'
 
-    //推特登陆和分享相关
-    implementation 'com.twitter.sdk.android:twitter-core:3.1.1'
-    implementation 'com.twitter.sdk.android:tweet-ui:3.1.1'
-    implementation 'com.twitter.sdk.android:tweet-composer:3.1.1'
-    //line
-    api 'com.linecorp:linesdk:5.0.1'
+        // Add the dependency for the Performance Monitoring library
+        api 'com.google.firebase:firebase-perf:19.0.5'
+        //Dynamic-links
+        api 'com.google.firebase:firebase-dynamic-links:19.1.0'
+        api 'com.google.firebase:firebase-analytics:17.2.3'
+        implementation 'com.braintreepayments.api:braintree:2.+'
+        implementation 'com.squareup.okhttp3:okhttp:3.12.0'
+        //谷歌支付
+        implementation 'com.android.billingclient:billing:3.0.3'
+
+
+        //推特登陆和分享相关
+        implementation 'com.twitter.sdk.android:twitter-core:3.1.1'
+        implementation 'com.twitter.sdk.android:tweet-ui:3.1.1'
+        implementation 'com.twitter.sdk.android:tweet-composer:3.1.1'
+        //line
+        api 'com.linecorp:linesdk:5.0.1'
 ```
 
 在工程级别的build.gradle 文件内增加以下插件
@@ -883,3 +885,54 @@ GMSDK.sendRegistrationGift(String servierId,String roleId)
 ```
 
 申请发放预注册奖励只能在收到预注册查询成功后调用(即：GMActionCode.ACTION_REGISTERATION_CHECK_SUCCESS)，否则会抛出异常。调用该方法时，请携带当前登录用户所在的区服ID和角色ID。该方法仅供客户端调用来启动预注册奖励发放流程，具体的预注册奖励发放，请后续对接服务端接口。
+
+
+
+### 4.11 播放视频
+
+当游戏内需要播放视频，可调用此接口。视频播放支持网络播放和本地播放，支持基本常见的视频格式。
+
+```java
+GMSDK.playVideo(String videoUrl, int oritation)
+```
+
+| 字段     | 类型   | 说明                                                         |
+| -------- | ------ | ------------------------------------------------------------ |
+| videoUrl | String | 网络视频播放地址格式："http://com.test.mp4",本地:/test.mp4" (对应存储位置的路径) |
+| oritation|  int	| 0横屏播放,1竖屏播放
+
+GMActionCode.ACTION_VIDEO_PLAY_CLOSE ：表示视频播放被用户关闭。
+
+GMActionCode.ACTION_VIDEO_PLAY_COMPLETE ：表示视频播放完成。
+
+GMActionCode.ACTION_VIDEO_PLAY_ERROR ：表示视频播放出现异常，一般需要检查视频地址参数是否正确。
+
+
+
+
+
+### 4.12 获取设备系统信息
+
+当需要获取用户设备的系统信息时，可调用此接口。
+```java
+GMSDK.getDeviceInfo()
+```
+
+返回字段示例：
+
+{"gaid":"9ebd931d-a62d-4d72-8ddd-8eb9a8cdbeb2", //设备gaid
+
+"version":"7.1.2", // 系统版本
+
+"device":"HTC 2Q4R100" //设备型号
+}
+
+
+
+
+
+
+
+
+
+
