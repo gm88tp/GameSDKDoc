@@ -537,7 +537,7 @@ GMSDK.doCPShareImage(String title, String content, String photoUrl);
 
 #### 3.6.3 直接分享（本地图片形式）
 
-当游戏需要拉起分享的时候，想直接分享手机本地图片时，应调用此接口，请注意本地分享只能分享包名路径下的地址，例如/data/data/<包名>/files/Screenshot/Share.png
+当游戏需要拉起分享的时候，想直接分享手机本地图片时，应调用此接口，请注意本地分享只能分享包名路径下的地址，例如/data/data/包名/files/Screenshot/Share.png
 接口定义：
 
 ```
@@ -967,7 +967,7 @@ GMSDK.getDeviceInfo()
 以下是谷歌商店包转QOO商店包的接入流程
 
 1.引入QOO商店qooapp-opensdk-v1.1.1.aar包
-2.在GMConfig.xml下添加标签<qoo confirm="1" />来标识此包是QOO商店包
+2.在GMConfig.xml下添加标签qoo confirm="1"来标识此包是QOO商店包
 3.在Manifest下做出如下添加APP_ID和PUBLIC_KEY填入运营提供的相关参数
 
 ```
@@ -984,6 +984,7 @@ GMSDK.getDeviceInfo()
 4.由于QOO商店和Google商店相对独立，主SDK有部分接口在QOO商店渠道变得不可用，CP需要在QOO渠道下禁用部分接口，并关闭游戏内相关接口入口
 我们提供两种方式供CP判断：
 1）CP自行对接口进行判断，当出QOO商店包时，禁用下列接口
+
 | 接口名称     | 代码名称  | 禁用原因                                                       |
 | -------- | ------ | ------------------------------------------------------------ |
 | 游戏绑定账号接口 | GMSDK.showBind();| 该接口用于对于游戏账号进行绑定邮箱的操作，这种操作只对怪猫账号有效，在Qoo渠道中并没有怪猫账号的概念 |
