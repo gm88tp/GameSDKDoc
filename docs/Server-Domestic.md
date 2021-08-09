@@ -192,3 +192,105 @@
 | 101    | 签名错误         |
 | 102    | 订单号不存在     |
 | 103    | 订单不属于该游戏 |
+
+### 问卷调查链接
+
+我方提供问卷ID，CP组合对应参数后生成完整链接 
+
+**请求类型：**
+
+GET
+
+**参数**
+
+| 字段      | 类型   | 参与签名   | 说明                          |
+| ------------- | ----------| ---------- | --------------------------------- |
+| uid    | int    | 是       |GM ID|
+| game_id   | int      | 是      |appID|
+| payload      | string    | 是       |透传参数，长度不超过30，仅支持 英文、数字、-_|
+| timestamp | string | 是       |时间戳|
+| signature     | string | 否                      |签名字段|
+| wjx_id | int | 否 |问卷ID，由我方提供|
+| action | string | 否 |固定值：wjx.activity|
+
+**signature签名**
+
+* 将以上字段连接,再加上app私钥,最后计算md5值。如
+
+```
+signature = md5(uid=xxx&game_id=xxx&payload=xxx&timestamp=xxx&appSecret)
+```
+
+**加密示例(PHP)**
+
+```php
+$appSecret = 'nHxJ8D8YkbZmYfTE';
+
+$data = array(
+    'uid' => '1',
+    'game_id' => '1',
+    'payload' => '110001042305',
+    'timestamp' => '11001',
+    'signature' => 'e96a7e4f7373adb8a39bd5a4ed3084e6',
+);
+
+$perstr = 'uid=1&game_id=11001&payload=1&timestamp=110001042305&nHxJ8D8YkbZmYfTE';
+
+$signature = md5($perstr); 
+```
+
+**链接生成示例**
+
+完整链接：
+https://demo.gm88.com/api/?action=wjx.activity&wjx_id=1&uid=1&game_id=11001&payload=1&timestamp=110001042305&signature=e96a7e4f7373adb8a39bd5a4ed3084e6
+
+
+### 问卷调查异步通知
+
+这是用户完成问卷调查之后，怪猫方发起的异步通知，CP方应有后端程序接收此请求，并在接收到此通知后返回正确的响应，以便怪猫后端知晓通知成功。
+
+异步通知 
+
+**请求类型：**
+
+POST
+
+**回调参数**
+
+| 字段      | 类型   | 参与签名   | 说明                          |
+| ------------- | ----------| ---------- | --------------------------------- |
+| wjx_id      | int    | 问卷ID    ||
+| uid    | int    | GM ID                                ||
+| game_id   | int      | appID       |
+| payload      | string    | 透传参数，长度不超过30，仅支持 英文、数字、-_ ||
+| timestamp | string | 时间戳 ||
+| signature     | string | 签名字段 不参与签名                       ||
+
+**signature签名**
+
+* 将以上字段连接,再加上app私钥,最后计算md5值。如
+
+```
+signature = md5(wjx_id=xxx&uid=xxx&game_id=xxx&payload=xxx&timestamp=xxx&appSecret)
+```
+
+**加密示例(PHP)**
+
+```php
+$appSecret = 'nHxJ8D8YkbZmYfTE';
+
+$data = array(
+    'wjx_id' => '1',
+    'uid' => '1',
+    'game_id' => '110001042305',
+    'payload' => '110001042305',
+    'timestamp' => '11001',
+    'signature' => 'e96a7e4f7373adb8a39bd5a4ed3084e6',
+);
+
+$perstr = 'wjx_id=1&uid=11001&game_id=1&payload=110001042305&timestamp=11001&nHxJ8D8YkbZmYfTE';
+
+$signature = md5($perstr); 
+```
+
+CP收到请求且处理完内部逻辑后就返回“ok“(字符串)，表示已经接收通知结果，如未收到ok，系统会每隔5分钟发起一次通知。
