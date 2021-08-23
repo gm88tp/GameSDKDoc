@@ -294,3 +294,71 @@ $signature = md5($perstr);
 ```
 
 CP收到请求且处理完内部逻辑后就返回“ok“(字符串)，表示已经接收通知结果，如未收到ok，系统会每隔5分钟发起一次通知。
+
+
+### 消息推送
+
+消息推送服务，目前仅支持IOS端推送，需要SDK支持
+
+* 请求方：商户
+
+* 请求类型
+
+POST
+
+* 请求参数
+
+| 参数   | 必填 | 类型 | 参与签名  | 描述             |
+| ------ | ---- | ------ | ------ | ---------------- |
+| action | Y    | String | 否 | 填写：tui  |
+| uid | Y    | String | 是 | Gm88游戏用户 ID  |
+| game_id | Y    | String | 是 | 游戏ID  |
+| body | Y    | String | 是 | 消息内容  |
+| expiration | N    | String | 是 | 通知失效时间，秒级的UTC时间戳。如果这个值非零，则保存通知并且尽量至少送达一次。如果无法第一时间送达，根据需要重复尝试。如果这个值为0，则通知立即过期，不会存储与重新推送。 |
+| title | N    | String | 是 | 标题  |
+| subtitle | N    | String | 是 | 幅标题  |
+| payload | N    | String | 是 | 透传参数  |
+| signature | Y    | String | 否 | 签名  |
+
+**signature签名**
+
+* 对参数按照key=value的格式，并按照参数名ASCII字典序排序,再加上app私钥,最后计算md5值。如
+
+```
+signature = md5(user_id=xxx&title=xxx&subtitle=xxx&payload=xxx&game_id=xxx&expiration=xxx&body=xxx&appSecret)
+```
+
+**加密示例(PHP)**
+
+```php
+$appSecret = 'z5AK6fHxN2PfKaMH';
+
+$data = array(
+    'game_id' => '1156',
+    'user_id' => '11610945',
+    'title' => 'title',
+    'subtitle' => 'subtitle',
+    'body' => '通知内容',
+    'expiration' => '',
+    'payload' => '',
+    'signature' => '4fb4b37df47b595693484c64a0fd1f18',
+);
+
+$perstr = 'user_id=11610945&title=title&subtitle=subtitle&payload=&game_id=1156&expiration=&body=通知内容&z5AK6fHxN2PfKaMH';
+
+$signature = md5($perstr); 
+```
+
+* 返回参数
+
+| 参数     | 描述               |
+| -------- | ------------------ |
+| status      | true    |
+
+* 返回示例
+
+~~~
+{
+    "status": true
+}
+~~~

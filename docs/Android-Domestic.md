@@ -1,4 +1,4 @@
-# 怪猫SDK 接入文档 2021/07/29
+# 怪猫SDK 接入文档 2021/08/23
 
 ## SDK **资源引用**
 
@@ -28,7 +28,7 @@
 ```xml
     <meta-data
                 android:name="game_sdk_version_guaimao"
-                android:value="3.9.0" />
+                android:value="3.9.2" />
    ```
 
 ## SDK 接入相关
@@ -369,26 +369,33 @@ GM.getPlayTimeLeft()
 Platform.getInstance().openUrlWithWeb(String url);
 ```
 
-2. 打开怪猫客服界面接口，调用此接口后，会进入客服界面
+
+2. 打开webview链接接口，调用此接口后，SDK会跳转webview
+
+```java
+Platform.getInstance().doOpenURLbyWebView(String url);
+```
+
+3. 打开怪猫客服界面接口，调用此接口后，会进入客服界面
 
 ```java
 Platform.getInstance().openCustomer(Context context);
 ```
 
-3. 打开怪猫个人中心界面接口，调用此接口后，会进入个人中心界面
+4. 打开怪猫个人中心界面接口，调用此接口后，会进入个人中心界面
 
 ```java
 Platform.getInstance().showUserCenter(Context context);
 ```
 
-4. 打开怪猫手机绑定界面接口，调用此接口后，会进入手机绑定界面
+5. 打开怪猫手机绑定界面接口，调用此接口后，会进入手机绑定界面
 
 ```java
 Platform.getInstance().showBindPhone();
 ```
 
 
-5. 打开怪猫实名认证界面接口，调用此接口后，会进入实名认证界界面
+6. 打开怪猫实名认证界面接口，调用此接口后，会进入实名认证界界面
 
 ```java
 Platform.getInstance().showBindId();
