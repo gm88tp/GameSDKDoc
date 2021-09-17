@@ -283,3 +283,137 @@ $signature = md5($perstr);
 ```
 
 CP收到请求且处理完内部逻辑后就返回“ok“(字符串)，表示已经接收通知结果，如未收到ok，系统会每隔5分钟发起一次通知。
+
+
+# 网页充值文档说明
+
+请按以下标准，提供2个接口地址给到我方运营
+
+## 接口说明
+
+所有的接口的返回形式都是统一为：
+
+- 正常返回
+
+```json
+{
+    "status":true,
+    "errorno":0,
+    "errortext":"OK",
+    "data":"某种类型的数据，比如字符串，数字，字典等等"
+}
+```
+
+- 错误返回
+
+```json
+{
+    "status":true,
+    "errorno":500,
+    "errortext":"具体的错误信息字符串"
+}
+```
+
+签名生成规则：
+
+1. Reuqest Body 按照键名 ASCII 排序
+2. 对排序后数组按key=value格式用&连接得出加密串
+3. md5( 加密串 + & + 密钥) 得出签名
+
+- PHP 签名示例
+
+```php
+$body = [
+	"uid" => "73146",
+    "server_id" => "1",
+    "timestamp" => "1631173146",
+];
+
+$secret_key = "H2CMZgDAL40zGJHn";
+
+ksort($body);
+
+$prestr = urldecode(http_build_query($body));
+
+$signature = md5($prestr.'&'.$secret_key);
+```
+
+## 接口列表
+
+### 获取角色列表
+#### Reuqest
+
+- Method: **GET**
+- URL: ```CP提供```
+- Headers： Content-Type:application/json
+- Body:
+```
+{
+    "uid" : "73146", // 我方用户ID
+    "timestamp" : "1631173146", // 当前时间戳
+    "signature" : "0af83fcf08d75ca5aae48383154cb037" // 签名
+}
+```
+
+#### Response
+- Body
+```
+{
+    "status":true,
+    "errorno":0,
+    "errortext":"OK",
+    "data":[
+        {
+        	"zone_id":"1", // 大区ID，如无大区此处传0
+            "zone_name":"测试大区", // 大区名称
+            "server_id":"1", // 服务器ID
+            "server_name":"测试1服", // 服务器名称
+            "role_id":"100001", // 角色ID
+            "role_name":"角色1" // 角色名称
+        },
+        {
+            "zone_id":"1",
+            "zone_name":"测试大区",
+            "server_id":"2",
+            "server_name":"测试2服",
+            "role_id":"100002",
+            "role_name":"角色2"
+        }
+    ]
+}
+```
+
+### 发货通知接口
+#### Reuqest
+
+- Method: **POST**
+- URL: ```CP提供```
+- Headers： Content-Type:application/json
+- Body:
+```
+{
+    "order_id" : "1631173146", // 我方订单号
+    "uid" : "73146", // 我方用户ID
+    "zone_id" : "73146", // 大区ID
+    "server_id" : "1", // 服务器ID
+    "role_id" : "73146", // 角色ID
+    "coin" : "1", // 付款金额
+    "game_coin" : "8001", // 实发游戏币
+    "timestamp" : "1631173146", // 当前时间戳
+    "signature" : "0af83fcf08d75ca5aae48383154cb037" // 签名
+}
+```
+
+#### Response
+- Body
+```json
+{
+    "status":true,
+    "errorno":0,
+    "errortext":"OK",
+    "data":{
+        "out_trade_no":"20210909110001", // CP方订单ID
+    }
+}
+```
+
