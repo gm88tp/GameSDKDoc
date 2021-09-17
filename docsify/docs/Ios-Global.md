@@ -9,14 +9,6 @@
 - SDK集成了登录，支付等功能。本文档详细说明相关功能在技术对接与使用过程中需要注意的地方，以便贵方能快速对接。阅读后如有疑问，请联系GM88游戏相关技术支持。
 - SDK目前支持语言有：简体中文，繁体中文，繁体中文（台湾），繁体中文（香港），英语，西班牙语，德语，法语，印度尼西亚语，越南语，韩语，日语，意大利语，马来语，葡萄牙语，俄语，泰语
 
-## 更新日志
-
-* 2021-09-03      v1.4.5
-
-支付优化，新增接口：订单修复
-
-
-
 # 准备工作
 
 ## 导入SDK
@@ -566,24 +558,6 @@ platPurchase purchase:mPayInfo CallBack:self];
  }
 }
 ```
-
-## 订单修复
-
-此接口用于显示需要修复的订单
-
-**接口**
-
-```objectivec
-+ (void)purchaseRepairView;
-```
-
-**示例**
-
-```objectivec
-[platPurchase purchaseRepairView];
-```
-
-
 
 ## 引入头文件
 
@@ -1232,40 +1206,3 @@ didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken ;
 [platTools deviceInfo];
 ```
 
-
-
-## Firebase Crash接入
-
-### 接入步骤：
-
-1、将给到的run和upload-symbols导入项目根目录。
-
-直接将上述文件拖入Xcode工程目录结构中，在弹出的界面中勾选**Copy items into destination group's folder(if needed)**，并确保**Add To Targets勾选相应target**。
-
-2、如图：
-
-![flags](assets/images/p8.png)
-
-选中TARGETS 你的项目 -> Build Phases -> Run Script  
-
-* 1、在Shell 脚本处添加：
-
-  ```objectivec
-  "${PROJECT_DIR}/${PROJECT_NAME}/run"
-  ```
-
-* 2、在Input Files，点击+，添加：
-
-  ```objectivec
-  ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}
-  ```
-
-  和
-
-  ```objectivec
-  $(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)
-  ```
-
- 注意：如果你没有发现Run Script ，可以点击“+”，选择New Run Script Phase即可。
-
-![flags](assets/images/p9.png)
