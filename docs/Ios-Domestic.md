@@ -5,7 +5,7 @@
 本文档适用于IOS 9.0及以上的操作系统。
 SDK放在SDK文件夹内
 
-本文档按照SDK区分，分为如下：登陆SDK，推送SDK，广告SDK
+本文档按照SDK区分，分为如下：登陆SDK，推送SDK，广告SDK，分享SDK
 
 请按需接入。
 
@@ -20,6 +20,12 @@ SDK放在SDK文件夹内
 2、新增七鱼 SDK数据上报，无接口变化
 
 3、新增原生pushCenter.framework
+
+2021.09.26 V3.9.3
+
+1、优化实名认证流程，无接口变化
+
+2、新增分享SDK：shareCenter.framework
 
 
 
@@ -774,7 +780,7 @@ purchaseModel* mPayInfo = [[purchaseModel alloc] init];
 [adPlatform pullAdvertisingReward];
 ```
 
-#### 
+
 
 
 
@@ -1081,4 +1087,336 @@ purchaseModel* mPayInfo = [[purchaseModel alloc] init];
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 分享SDK
+
+### 1、导入SDK
+
+* 将shareCenter.framework 和 share.bundle 导入您的项目中。
+
+```objectivec
+选择shareCenter.framework, share.bundle（或将文件拖入Xcode工程目录结构中）文件，在弹出的界面中勾选Copy items into destination group's folder(if needed)，并确保Add To Targets勾选相应target。
+```
+
+**点击项目：TARGETS -> General -> Frameworks,Libraries,and Embedded Content ->shareCenter.framework -> Embed & Sign **
+
+### 2、资源配置说明
+
+对share.bundle资源包的内容说明如下。
+
+需要配置的参数表：share.bundle -> inforset.plist
+
+| 参数名          | 类型   | 描述                   | 示例                                    | 补充说明                                            |
+| --------------- | ------ | ---------------------- | --------------------------------------- | --------------------------------------------------- |
+| wechatAppid     | String | 微信Appid              | wx..................                    | 需要使用微信分享的，必须填写wechatAppid和wechatlink |
+| wechatlink      | String | 微信配置的通用链接地址 | https://demo.gm88.com/app1/1/           |                                                     |
+| wbAppkey        | String | 微博Appkey             | 4225951394                              | 需要使用微博分享的，必须填写wbAppkey和wbLink        |
+| wbLink          | String | 微博的通用链接地址     | https://demo.gm88.com/app1/             |                                                     |
+| qqAppid         | String | QQ的AppId              | 101949077                               | 需要使用qq分享的，必须填写qqAppid和qqLink           |
+| qqLink          | String | QQ的通用链接           | https://demo.gm88.com/qq_conn/101949077 |                                                     |
+| douyinClientKey | String | 抖音clientKey          | awmms3veimohgix8                        |                                                     |
+| gameId          | String | 游戏id                 | 4817                                    | 游戏id是比必填项                                    |
+
+如有缺少参数，可以联系相关运营；如对参数有疑问，可以联系相关对接人员。
+
+### 3、配置Info.plist
+
+```xml
+<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.weibo</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+        <!----------需要修改（微博应用id）---------------->
+				<string>wb4225951394</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>tencent</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+        <!----------需要修改（腾讯qq的应用id）---------------->
+				<string>tencent101949077</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>weixin</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+        <!----------需要修改（微信的appid）---------------->
+				<string>wx2baa06ccaffc3b0b</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>douyin</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+        <!----------需要修改（抖音客户端id）---------------->
+				<string>awmms3veimohgix8</string>
+			</array>
+		</dict>
+	</array>
+
+<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>mqqopensdknopasteboard</string>
+		<string>tim</string>
+		<string>mqq</string>
+		<string>mqqapi</string>
+		<string>mqqbrowser</string>
+		<string>mttbrowser</string>
+		<string>mqqopensdkapiV2</string>
+		<string>mqqopensdkapiV4</string>
+		<string>mqzone</string>
+		<string>mqzoneopensdk</string>
+		<string>mqzoneopensdkapi</string>
+		<string>mqzoneopensdkapi19</string>
+		<string>mqzoneopensdkapiV2</string>
+		<string>mqqopensdkfriend</string>
+		<string>mqqopensdkavatar</string>
+		<string>mqqopensdkminiapp</string>
+		<string>mqqopensdkdataline</string>
+		<string>mqqgamebindinggroup</string>
+		<string>mqqopensdkgrouptribeshare</string>
+		<string>tencentapi.qq.reqContent</string>
+		<string>tencentapi.qzone.reqContent</string>
+		<string>mqqthirdappgroup</string>
+		<string>mqqopensdklaunchminiapp</string>
+		<string>weixin</string>
+		<string>weixinULAPI</string>
+		<string>sinaweibohd</string>
+		<string>sinaweibo</string>
+		<string>weibosdk</string>
+		<string>weibosdk2.5</string>
+		<string>weibosdk3.3</string>
+		<string>douyinopensdk</string>
+		<string>douyinsharesdk</string>
+		<string>snssdk1128</string>
+	</array>
+<!-----允许http请求------>
+<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+
+<!------权限设置-------->
+<key>NSCameraUsageDescription</key>
+<string>需要您的同意,APP才能访问相机</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>需要您的同意,APP才能访问相册</string>
+<key>NSUserTrackingUsageDescription</key>
+<string>获取设备信息用于精准推送您喜欢的内容</string>
+```
+
+### 4、导入头文件
+
+```objectivec
+#import <shareCenter/sharePlatform.h>
+```
+
+### 5、初始化
+
+初始化方法需要在\- (**BOOL**)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;方法中接入。
+
+方法一：**（推荐使用）**
+
+```objectivec
+- (void)registerShare;
+```
+
+**示例**
+
+```objectivec
+[[sharePlatform getInit] registerShare];
+```
+
+方法二：**（不推荐使用，即将废弃）**
+
+* 此方法初始化的不支持抖音分享，并且只支持cp接入时指定的shareType类型的分享。
+* 调用此方法必须所有参数均不为空
+
+```objectivec
+- (void)registerAppwchat:(NSString *)wappid universalLinkAppwchat:(NSString *)wchatlink wbAppkey:(NSString *)appkey universalLinkWb:(NSString *)wblink tenchentId :(NSString *)qAppid universalLinkqwchat:(NSString *)qlink;
+```
+
+**示例**
+
+```objectivec
+[[sharePlatform getInit] registerAppwchat:@"wx........" universalLinkAppwchat:@"https://..." wbAppkey:@"1...." universalLinkWb:@"https://....." tenchentId:@"1...." universalLinkqwchat:@"https://....."];
+```
+
+### 6、跳转应用
+
+在AppDelegate的-(**BOOL**)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,**id**> *)options方法中调用。
+
+**方法**
+
+```objectivec
+-(BOOL)shareApplication:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options;
+```
+
+**示例**
+
+```objectivec
+-(BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options{
+    return [[sharePlatform getInit] shareApplication:app openURL:url options:options];
+}
+```
+
+### 7、用户行为
+
+在AppDelegate的\- (**BOOL**)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(**void**(^)(NSArray<**id**<UIUserActivityRestoring>> * **__nullable** restorableObjects))restorationHandler API_AVAILABLE(ios(8.0)); 方法中调用。
+
+**方法**
+
+```objectivec
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity;
+```
+
+**示例**
+
+```objectivec
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
+    return [[sharePlatform getInit] application:application continueUserActivity:userActivity];
+}
+```
+
+### 8、分享
+
+下面方法是cp在需要接入分享的地方，调用的分享接口。
+
+分享的结果回调值有：
+
+```objectivec
+typedef NS_ENUM(NSInteger , statusCode) {
+    statusCodeSuccess=0,   //分享成功
+    statusCodeCancel=-2    //分享失败
+};
+```
+
+分享内容对象：shareContentItem，可以设置如下表所示的内容
+
+| 参数名          | 类型     | 说明                                               |
+| --------------- | -------- | -------------------------------------------------- |
+| share_id        | NSString | 分享id，对应提供的后台的分享id（没有，则无需设置） |
+| share_title     | NSString | 分享标题                                           |
+| share_msg       | NSString | 分享文本                                           |
+| share_imgurl    | NSString | 分享图片                                           |
+| share_targeturl | NSString | 分享链接                                           |
+| share_videourl  | NSString | 分享视频                                           |
+
+注：不管使用哪种分享接口，均需要设置分享内容对象。
+
+#### 一、指定分享接口
+
+分享类型：
+
+```objectivec
+typedef NS_ENUM(NSInteger, shareType){
+    
+       ShareTypeWeiBo = 0,   // 新浪微博
+       ShareTypeQQ,          // QQ好友
+       ShareTypeQQZone,      // QQ空间
+       ShareTypeWTimeline,   // 朋友圈
+       ShareTypeWSession,    // 微信朋友
+       ShareTypeWFavorite,   // 微信收藏
+       ShareTypeDY,          
+};
+```
+
+初始化时配置表要配置相关参数才能指定相应分享类型。
+
+**参数**
+
+| 参数名      | 示例             | 说明                                                        |
+| ----------- | ---------------- | ----------------------------------------------------------- |
+| contentObj  | 详见接口调用示例 | 分享内容对象                                                |
+| shareType   | ShareTypeQQ      | 分享类型（请不要设置抖音ShareTypeDY，此接口不支持抖音分享） |
+| shareResult | 详见接口调用示例 | 分享结果回调                                                |
+
+**方法**
+
+```objectivec
++ (void)shareWithContent:(shareContentItem *)contentObj
+               shareType:(shareType)shareType
+             shareResult:(ShareResultlBlock)shareResult;
+```
+
+**示例**
+
+```objectivec
+    shareContentItem *item = [[shareContentItem alloc]init];
+    item.share_title = @"ceshi";
+    item.share_msg = @"msg";
+    item.share_imgurl = @"https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fb-ssl.duitang.com%2Fuploads%2Fitem%2F201902%2F23%2F20190223141657_UdyKF.thumb.700_0.jpeg&refer=http%3A%2F%2Fb-ssl.duitang.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1635238064&t=8a9f2a17264cab4d37237251cd9cc585";
+    item.share_targeturl = @"https://www.baidu.com";
+    [sharePlatform shareWithContent:item shareType:ShareTypeQQ shareResult:^(NSInteger shareResult) {
+      //分享结果回调 0 成功 -2失败
+        NSLog(@"分享结果:%d",shareResult);
+    }];
+```
+
+#### 二、多渠道分享接口
+
+此接口cp无需指定分享类型，只要配置了资源包，SDK会根据传入的分享内容对象去匹配相应的渠道或展示多渠道页面供用户选择。
+
+**参数**
+
+| 参数名      | 示例             | 说明         |
+| ----------- | ---------------- | ------------ |
+| contentObj  | 详见接口调用示例 | 分享内容对象 |
+| shareResult | 详见接口调用示例 | 分享结果回调 |
+
+**方法**
+
+```objectivec
++ (void)shareWithContent:(shareContentItem *)contentObj
+             shareResult:(ShareResultlBlock)shareResult;
+```
+
+**示例**
+
+```objectivec
+ shareContentItem *item = [[shareContentItem alloc] init];
+            item.share_id = @"4817001";
+            item.share_title = @"测试标题";
+            item.share_msg = @"分享内容";
+            item.share_imgurl =  [[NSBundle mainBundle] pathForResource:@"test1" ofType:@"jpeg"];
+            item.share_targeturl = @"http://www.baidu.com";
+            item.share_videourl = @"http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+            [sharePlatform shareWithContent:item shareResult:^(NSInteger shareResult) {
+                NSLog(@"分享：%ld",shareResult);
+                if (shareResult == 0) {
+                    [self setPromot:@"分享成功"];
+                } else {
+                    [self setPromot:@"分享失败"];
+                }
+            }];
+```
 
