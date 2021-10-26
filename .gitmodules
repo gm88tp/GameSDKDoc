@@ -19,3 +19,6 @@
 [submodule "Android/Global-StandAlone"]
 	path = Android/Global-StandAlone
 	url = https://github.com/gm88tp/Android-Global-SDK-Demo-StandAlone
+[submodule "MiniGame"]
+	path = MiniGame
+	url = git@github.com:gm88tp/MiniGame-SDK.git
