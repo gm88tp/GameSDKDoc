@@ -13,6 +13,26 @@ SDK放在SDK文件夹内
 
 ## 更新日志
 
+2021.12.02  V3.9.4
+
+1、新增修改个人信息入口
+
+2、新增社区入口
+
+注：V3.9.4版本及其后续版本，SDK文件夹下会有两个目录：一个纯SDK，一个包含分享的SDK 
+
+3、分享SDK更新，无接口变化
+
+4、数数打点更新，无接口变化
+
+5、新增发布记录
+
+2021.09.26 V3.9.3
+
+1、优化实名认证流程，无接口变化
+
+2、新增分享SDK：shareCenter.framework
+
 2021.08.25 V3.9.2
 
 1、新增TA SDK，用于数据统计，无接口变化
@@ -20,12 +40,6 @@ SDK放在SDK文件夹内
 2、新增七鱼 SDK数据上报，无接口变化
 
 3、新增原生pushCenter.framework
-
-2021.09.26 V3.9.3
-
-1、优化实名认证流程，无接口变化
-
-2、新增分享SDK：shareCenter.framework
 
 
 
@@ -70,12 +84,13 @@ SDK放在SDK文件夹内
 | ---------- | ------ | --------------------- | ----------------------------------- |
 | channel    | String | 渠道id，默认不用修改  | 2                                   |
 | gameid     | String | 游戏ID                | 1156                                |
-| sdkversion | String | SDK版本（不需要修改） | 3.9.2                               |
+| sdkversion | String | SDK版本（不需要修改） | 3.9.4                               |
 | appversion | String | 当前应用的版本        | 1.0                                 |
 | trackIoKey | String | 热云数据统计的key     | b17e8a65fd93353c00349ee3a2a565b8    |
 | kfkey      | String | 七鱼客服appkey        | 23b744c7f4a4b0688866f1d50facdae8    |
 | TAAppId    | String | 数数的appid           | 06842647fb7c48e794aafa3d6d3fc7d9    |
 | TAUrl      | String | 数数的url             | https://receiver.ta.thinkingdata.cn |
+| releaseid  | String | 发布记录id            | 0                                   |
 
 注：按照需要接入的功能模块接入，修改相关的参数（其他未说明参数均无需修改，此处不说明）。
 
@@ -91,6 +106,10 @@ SDK放在SDK文件夹内
   
   <key>NSUserTrackingUsageDescription</key>
 	<string>该标识符将用于向您投放个性化广告</string>
+
+<!--v3.9.4接入社区功能，需要设置语言-->
+<key>CFBundleDevelopmentRegion</key>
+<string>zh_CN</string>
 ```
 
 
@@ -174,6 +193,11 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 //跳转链接，此接口用于跳转iOS9之前的方法
 -(BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation{
     return  [platInit application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
+}
+
+//用户活动，接入分享时需要接入此接口
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
+  return [platInit application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
 }
 ```
 
@@ -670,7 +694,7 @@ purchaseModel* mPayInfo = [[purchaseModel alloc] init];
 [platTools getInfoString:@"gameid"];
 ```
 
-#### 
+
 
 
 
@@ -1403,14 +1427,53 @@ typedef NS_ENUM(NSInteger, shareType){
 **示例**
 
 ```objectivec
+shareContentItem *item = [[shareContentItem alloc] init];
+item.share_id = @"4817001";
+item.share_title = @"测试标题";
+item.share_msg = @"分享内容";
+item.share_imgurl =  [[NSBundle mainBundle] pathForResource:@"test1" ofType:@"jpeg"];
+item.share_targeturl = @"http://www.baidu.com";
+item.share_videourl = @"http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+[sharePlatform shareWithContent:item shareResult:^(NSInteger shareResult) {
+                NSLog(@"分享：%ld",shareResult);
+                if (shareResult == 0) {
+                    [self setPromot:@"分享成功"];
+                } else {
+                    [self setPromot:@"分享失败"];
+                }
+            }];
+```
+
+
+
+### 主SDK包含分享接口：
+
+接入步骤：重复上面的1，2，3，4，7步骤，然后接入主SDK中的分享功能接口即可。具体如下：
+
+**参数**
+
+| 参数名 | 示例             | 说明         |
+| ------ | ---------------- | ------------ |
+| item   | 详见接口调用示例 | 分享内容对象 |
+| result | 详见接口调用示例 | 分享结果回调 |
+
+**方法**
+
+```objectivec
++ (void)shareItem:(shareContentItem *)item shareResult:(ShareResultlBlock)result;
+```
+
+**示例**
+
+```objectivec
  shareContentItem *item = [[shareContentItem alloc] init];
-            item.share_id = @"4817001";
-            item.share_title = @"测试标题";
-            item.share_msg = @"分享内容";
-            item.share_imgurl =  [[NSBundle mainBundle] pathForResource:@"test1" ofType:@"jpeg"];
-            item.share_targeturl = @"http://www.baidu.com";
-            item.share_videourl = @"http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
-            [sharePlatform shareWithContent:item shareResult:^(NSInteger shareResult) {
+ item.share_id = @"4817001";
+ item.share_title = @"测试标题";
+ item.share_msg = @"分享内容";
+ item.share_imgurl =  [[NSBundle mainBundle] pathForResource:@"test1" ofType:@"jpeg"];
+ item.share_targeturl = @"http://www.baidu.com";
+ item.share_videourl = @"http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+ [platTools shareItem:item shareResult:^(NSInteger shareResult) {
                 NSLog(@"分享：%ld",shareResult);
                 if (shareResult == 0) {
                     [self setPromot:@"分享成功"];
