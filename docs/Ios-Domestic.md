@@ -1,4 +1,4 @@
-# iOS_SDK_接入说明文档(v3.9.2)
+# iOS_SDK_接入说明文档(v3.9.5)
 
 ## 适用范围
 
@@ -12,6 +12,20 @@ SDK放在SDK文件夹内
 
 
 ## 更新日志
+
+2021.12.30  V3.9.5
+
+1、新增闪验
+
+2、新增微信登录
+
+注：1，2无接口变化
+
+3、新增协议接口
+
+4、原打开链接接口废弃，改为showInfo:
+
+5、新增用户中心接口
 
 2021.12.02  V3.9.4
 
@@ -80,23 +94,26 @@ SDK放在SDK文件夹内
 
 * 相关参数需要填写在给到的.bundle的infoset.plist中，详见下表所示。
 
-| 参数       | 类型   | 描述                  | 示例                                |
-| ---------- | ------ | --------------------- | ----------------------------------- |
-| channel    | String | 渠道id，默认不用修改  | 2                                   |
-| gameid     | String | 游戏ID                | 1156                                |
-| sdkversion | String | SDK版本（不需要修改） | 3.9.4                               |
-| appversion | String | 当前应用的版本        | 1.0                                 |
-| trackIoKey | String | 热云数据统计的key     | b17e8a65fd93353c00349ee3a2a565b8    |
-| kfkey      | String | 七鱼客服appkey        | 23b744c7f4a4b0688866f1d50facdae8    |
-| TAAppId    | String | 数数的appid           | 06842647fb7c48e794aafa3d6d3fc7d9    |
-| TAUrl      | String | 数数的url             | https://receiver.ta.thinkingdata.cn |
-| releaseid  | String | 发布记录id            | 0                                   |
+| 参数        | 类型   | 描述                  | 示例                                |
+| ----------- | ------ | --------------------- | ----------------------------------- |
+| channel     | String | 渠道id，默认不用修改  | 2                                   |
+| gameid      | String | 游戏ID                | 1156                                |
+| sdkversion  | String | SDK版本（不需要修改） | 3.9.4                               |
+| appversion  | String | 当前应用的版本        | 1.0                                 |
+| trackIoKey  | String | 热云数据统计的key     | b17e8a65fd93353c00349ee3a2a565b8    |
+| kfkey       | String | 七鱼客服appkey        | 23b744c7f4a4b0688866f1d50facdae8    |
+| TAAppId     | String | 数数的appid           | 06842647fb7c48e794aafa3d6d3fc7d9    |
+| TAUrl       | String | 数数的url             | https://receiver.ta.thinkingdata.cn |
+| releaseid   | String | 发布记录id            | 0                                   |
+| SYAppid     | String | 闪验Appid             | e6c0ef437dfb                        |
+| wechatAppid | String | 微信Appid             | wx......                            |
+| wechatlink  | String | 微信通用链接          | https://xxxxx.com/xxxx              |
 
 注：按照需要接入的功能模块接入，修改相关的参数（其他未说明参数均无需修改，此处不说明）。
 
 **4、Info.plist 设置**
 
-```css
+```xml
 <key>NSCameraUsageDescription</key>
 	<string>客服功能需要相机权限</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -110,6 +127,28 @@ SDK放在SDK文件夹内
 <!--v3.9.4接入社区功能，需要设置语言-->
 <key>CFBundleDevelopmentRegion</key>
 <string>zh_CN</string>
+
+<!--v3.9.5接入微信登录功能，需要设置如下-->
+  <key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>weixin</string>
+		<string>weixinULAPI</string>
+	</array>
+
+<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>weixin</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+<!----------需要修改（微信的appid）---------------->
+				<string>wx2baa06ccaffc3b0b</string>
+			</array>
+		</dict>
+	</array>
 ```
 
 
@@ -195,9 +234,9 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     return  [platInit application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
 }
 
-//用户活动，接入分享时需要接入此接口
+//用户活动，一、接入分享时需要接入此接口，二、v3.9.5及其以后版本需要接入此接口
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
-  return [platInit application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+  return [platInit application:application continueUserActivity:userActivity];
 }
 ```
 
@@ -462,6 +501,22 @@ UserInfoModel *userInfo = [platLogin getUserInfo];
 [platLogin getToken];
 ```
 
+##### 5、用户中心
+
+打开用户中心
+
+**方法**
+
+```objectivec
++ (void)usercenter;
+```
+
+**示例**
+
+```objectivec
+[platLogin usercenter];
+```
+
 ### 支付（模块方法）
 
 * platPurchase类是支付接口类
@@ -651,13 +706,13 @@ purchaseModel* mPayInfo = [[purchaseModel alloc] init];
 **方法**
 
 ```objectivec
-+ (void)agreement:(NSString * )info;
++ (void)showInfo:(NSString * )info;
 ```
 
 **示例**
 
 ```objectivec
-[platTools agreement:@"https://www.baidu.com"];
+[platTools showInfo:@"https://www.baidu.com"];
 ```
 
 #### 4、获取idfa
@@ -694,11 +749,38 @@ purchaseModel* mPayInfo = [[purchaseModel alloc] init];
 [platTools getInfoString:@"gameid"];
 ```
 
+#### 6、协议
 
+**参数**
 
+| 参数名 | 类型                | 说明                   |
+| ------ | ------------------- | ---------------------- |
+| result | agreementStatusCode | 0代表同意，1代表不同意 |
 
+```objectivec
+typedef NS_ENUM(NSInteger , agreementStatusCode) {
+    agreementStatusCodeAgree=0, //同意
+    agreementStatusCodeUNAgree=1  //不同意
+};
+```
 
+**方法**
 
+```objectivec
++ (void)agreementWithResult:(void(^)(agreementStatusCode code))result;
+```
+
+**示例**
+
+```objectivec
+[platTools agreementWithResult:^(agreementStatusCode code) {
+             if(code == agreementStatusCodeAgree) {
+                 NSLog(@"同意");
+             } else {
+                 NSLog(@"不同意");
+             }
+         }];
+```
 
 
 
