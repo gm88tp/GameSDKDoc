@@ -324,7 +324,7 @@ CP收到请求且处理完内部逻辑后就返回“ok“(字符串)，表示�
 
 ```php
 $body = [
-	"uid" => "73146",
+    "uid" => "73146",
     "server_id" => "1",
     "timestamp" => "1631173146",
 ];
@@ -364,7 +364,7 @@ $signature = md5($prestr.'&'.$secret_key);
     "errortext":"OK",
     "data":[
         {
-        	"zone_id":"1", // 大区ID，如无大区此处传0
+            "zone_id":"1", // 大区ID，如无大区此处传0
             "zone_name":"测试大区", // 大区名称
             "server_id":"1", // 服务器ID
             "server_name":"测试1服", // 服务器名称
@@ -400,6 +400,8 @@ $signature = md5($prestr.'&'.$secret_key);
     "coin" : "1", // 付款金额
     "game_coin" : "8001", // 实发游戏币
     "timestamp" : "1631173146", // 当前时间戳
+    "item_type" : 1, // 商品类型  1游戏币商品 2礼包类商品
+    "gift_item_id" : 1, // 礼包id item_type=1是 为0  等于2时是礼包id
     "signature" : "0af83fcf08d75ca5aae48383154cb037" // 签名
 }
 ```
@@ -444,8 +446,47 @@ $signature = md5($prestr.'&'.$secret_key);
             "zone_id": "0",
             "zone_name": "默认大区",
             "role_list_url": "https://domain/role_list.php",
+            "gift_product_url": "https://domain/gift_product.php",
             "notify_url": "https://domain/notify.php"
         }
+    ]
+}
+```
+
+### 获取上架礼品商品列表
+#### Reuqest
+
+- Method: **GET**
+- URL: ```CP提供```
+- Headers： Content-Type:application/json
+- Body:
+```
+{
+    "timestamp" : "1631173146", // 当前时间戳
+    "signature" : "0af83fcf08d75ca5aae48383154cb037" // 签名
+}
+```
+
+#### Response
+- Body
+```
+{
+    "status":true,
+    "errorno":0,
+    "errortext":"OK",
+    "data":[
+        {
+            "item_id":"1", // 礼包id
+            "item_name":"测试大区", // 礼包名称
+            "price":"1", // 价格
+            "props_list": [
+                {
+                    "id":1, 道具id
+                    "img":"https://xxxxx", 道具图片全连接
+                    "num":0, 道具数量
+                }
+            ]
+        },
     ]
 }
 ```
