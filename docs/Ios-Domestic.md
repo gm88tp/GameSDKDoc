@@ -1,4 +1,4 @@
-# iOS_SDK_接入说明文档(v3.9.5)
+# iOS_SDK_接入说明文档(v3.9.6)
 
 ## 适用范围
 
@@ -12,6 +12,18 @@ SDK放在SDK文件夹内
 
 
 ## 更新日志
+
+2022.02.11 V3.9.6
+
+1、新增苹果登录
+
+2、修改登录UI
+
+3、客服改成AiHelp
+
+4、数数打点修改
+
+注：此版本SDK无接口变化，资源文件有变化，接入需更换
 
 2021.12.30  V3.9.5
 
@@ -88,28 +100,37 @@ SDK放在SDK文件夹内
 </dict> 
 ```
 
+（4）如果包含微信登录或者所有方式的分享功能，需要设置：
 
+点击项目：TARGETS -> Signing & Capabilities -> 点击“+” -> Associated Domains ->点击“+”添加给到的域名。
 
 **3、参数表配置**
 
 * 相关参数需要填写在给到的.bundle的infoset.plist中，详见下表所示。
 
-| 参数        | 类型   | 描述                  | 示例                                |
-| ----------- | ------ | --------------------- | ----------------------------------- |
-| channel     | String | 渠道id，默认不用修改  | 2                                   |
-| gameid      | String | 游戏ID                | 1156                                |
-| sdkversion  | String | SDK版本（不需要修改） | 3.9.4                               |
-| appversion  | String | 当前应用的版本        | 1.0                                 |
-| trackIoKey  | String | 热云数据统计的key     | b17e8a65fd93353c00349ee3a2a565b8    |
-| kfkey       | String | 七鱼客服appkey        | 23b744c7f4a4b0688866f1d50facdae8    |
-| TAAppId     | String | 数数的appid           | 06842647fb7c48e794aafa3d6d3fc7d9    |
-| TAUrl       | String | 数数的url             | https://receiver.ta.thinkingdata.cn |
-| releaseid   | String | 发布记录id            | 0                                   |
-| SYAppid     | String | 闪验Appid             | e6c0ef437dfb                        |
-| wechatAppid | String | 微信Appid             | wx......                            |
-| wechatlink  | String | 微信通用链接          | https://xxxxx.com/xxxx              |
+| 参数            | 类型   | 描述                                                         | 示例                                |
+| --------------- | ------ | ------------------------------------------------------------ | ----------------------------------- |
+| channel         | String | 渠道id，默认不用修改                                         | 2                                   |
+| gameid          | String | 游戏ID                                                       | 1156                                |
+| sdkversion      | String | SDK版本（不需要修改）                                        | 3.9.4                               |
+| appversion      | String | 当前应用的版本                                               | 1.0                                 |
+| trackIoKey      | String | 热云数据统计的key                                            | b17e8a65fd93353c00349ee3a2a565b8    |
+| kfkey           | String | 七鱼客服appkey（v3.9.6开始无需设置--**废弃⚠️**）              |                                     |
+| TAAppId         | String | 数数的appid                                                  | 06842647fb7c48e794aafa3d6d3fc7d9    |
+| TAUrl           | String | 数数的url                                                    | https://receiver.ta.thinkingdata.cn |
+| releaseid       | String | 发布记录id                                                   | 0                                   |
+| SYAppid         | String | 闪验Appid（不需要使用闪验登录的，可设置为空）                | e6c0ef437dfb                        |
+| wechatAppid     | String | 微信Appid (需要接入微信登录或者微信分享的添加，不需要的设置成空) | wx......                            |
+| wechatlink      | String | 微信通用链接 (需要接入微信登录或者微信分享的添加，不需要的设置成空) | https://xxxxx.com/xxxx              |
+| wbAppkey        | String | 微博key（需要接入微博分享的添加，不需要的可以设置为空）      | 4225951394                          |
+| wbLink          | String | 微博的通用链接（需要接入微博分享的添加，不需要的可以设置为空） | https://xxxx                        |
+| qqAppid         | String | qq的appid（需要接入qq分享的添加，不需要的可以设置为空）      | 10......                            |
+| qqLink          | String | qq的通用链接（需要接入qq分享的添加，不需要的可以设置为空）   | https://xxxx                        |
+| douyinClientKey | String | 抖音客户端key（需要接入抖音分享的添加，不需要的可以设置为空） | awm......                           |
 
 注：按照需要接入的功能模块接入，修改相关的参数（其他未说明参数均无需修改，此处不说明）。
+
+kfkey ：  七鱼客服appkey（v3.9.6开始无需设置--**废弃⚠️**） 
 
 **4、Info.plist 设置**
 
@@ -151,7 +172,7 @@ SDK放在SDK文件夹内
 	</array>
 ```
 
-
+//不需要相关功能的就不需要设置
 
 ### 二、接入方法
 
@@ -679,7 +700,8 @@ purchaseModel* mPayInfo = [[purchaseModel alloc] init];
              serverID:(NSString *)serverID
                roleID:(NSString *)roleID
                status:(NSString *)status
-            vipLevel:(NSString *)vipLevel;
+            vipLevel:(NSString *)vipLevel
+               zone:(NSString *)zone;
 ```
 
 **示例**
@@ -690,7 +712,8 @@ purchaseModel* mPayInfo = [[purchaseModel alloc] init];
              serverID:@"1"
                roleID:@"1"
                status:@"1"
-            vipLevel:@"0"];
+            vipLevel:@"0"
+                zone:@"0"];
 ```
 
 #### 3、打开链接
