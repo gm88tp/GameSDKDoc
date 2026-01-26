@@ -7,7 +7,7 @@
 
 **接口接入地址：**
 
-正式：https://m.hkpctimes.com/api/ 
+正式：请联系运营获取 
 
 测试：https://mdemo.hkpctimes.com/api/ 
 
@@ -82,7 +82,7 @@ signature = md5(order_id=xxx&server_id=xxx&role_id=xxx&developerinfo=xxx&coin=xx
 
 **接口接入地址：**
 
-正式：https://m.hkpctimes.com/api/ 
+正式：请联系运营获取 
 
 测试：https://mdemo.hkpctimes.com/api/ 
 
